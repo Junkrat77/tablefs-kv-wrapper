@@ -1,4 +1,4 @@
-cmake_minimum_required(3.11)
+cmake_minimum_required(VERSION 3.11)
 project(tablefs_petakv)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -11,11 +11,11 @@ aux_source_directory(adaptor ADAPTOR)
 aux_source_directory(fs FS)
 aux_source_directory(util UTIL)
 
-message(${ADAPTOR})
-message(${FS})
-message(${UTIL})
+#message(${ADAPTOR})
+#message(${FS})
+#message(${UTIL})
 
-add_executable(lib/leveldb)
+add_subdirectory(lib/leveldb)
 
 target_include_directories(tablefs include .)
 

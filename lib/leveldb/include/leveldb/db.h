@@ -12,7 +12,7 @@
 
 namespace leveldb {
 
-// Update Makefile if you change these
+// Update Makefile.back if you change these
 static const int kMajorVersion = 1;
 static const int kMinorVersion = 5;
 
