@@ -19,9 +19,9 @@ class Logging {
 public:
   Logging() : logging_filename("/tmp/tmp.log") {}
 
-  Logging(const char *path) : logging_filename(path) {}
+  explicit Logging(const char *path) : logging_filename(path) {}
 
-  Logging(const std::string &path) : logging_filename(path) {}
+  explicit Logging(const std::string &path) : logging_filename(path) {}
 
   void Open();
 
@@ -37,7 +37,7 @@ public:
 
 private:
   std::string logging_filename;
-  FILE *logfile;
+  FILE *logfile {nullptr};
 };
 
 }
