@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  env:
+    build: .
+
+    volumes:
+      - .:/home/tablefs
+    ports:
+      - "45678:22"
+    cap_add:
+      - ALL

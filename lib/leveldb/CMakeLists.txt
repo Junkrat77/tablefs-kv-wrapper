@@ -2,6 +2,18 @@ cmake_minimum_required(VERSION 3.13)
 project(leveldb)
 
 add_library(leveldb "")
+
+target_include_directories(leveldb PUBLIC include port .)
+if (WIN32)
+    target_include_directories(leveldb PUBLIC port/win)
+elseif(MACOS)
+    add_definitions(-DOS_MACOSX)
+else()
+    add_definitions(-DOS_LINUX)
+endif ()
+
+add_definitions(-DLEVELDB_PLATFORM_POSIX)
+
 target_sources(leveldb PUBLIC
         "db/builder.cc"
         "db/builder.h"
@@ -82,8 +94,4 @@ target_sources(leveldb PUBLIC
         "util/status.cc"
         )
 
-if (WIN32)
-    target_include_directories(leveldb PUBLIC port/win)
-endif ()
-
-target_include_directories(leveldb PUBLIC include .)
+target_link_libraries(leveldb pthread)
