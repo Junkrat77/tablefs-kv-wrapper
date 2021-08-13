@@ -22,7 +22,7 @@
 #include "fs/tablefs.h"
 #include "util/myhash.h"
 #include "util/mutexlock.h"
-#include "util/socket.h"
+//#include "util/socket.h"
 #include "leveldb/env.h"
 #include "leveldb/db.h"
 #include "leveldb/cache.h"
@@ -320,12 +320,12 @@ void do_monitor(LevelDBAdaptor* metadb) {
       char metricString[128];
       sprintf(metricString,
              "tablefs.%s %d %d\n", metname[ri], now_time, r[ri]);
-      UDPSocket sock;
+      /*UDPSocket sock;
       try {
         sock.sendTo(metricString, strlen(metricString),
                     std::string("127.0.0.1"), 10600);
       } catch (SocketException &e) {
-      }
+      }*/
     }
   }
 }
@@ -343,12 +343,12 @@ void report_get_count(LevelDBAdaptor* metadb) {
       char metricString[128];
       sprintf(metricString,
              "tablefs.get_count_%d %d %d\n", i, now_time, r[i]);
-      UDPSocket sock;
+      /*UDPSocket sock;
       try {
         sock.sendTo(metricString, strlen(metricString),
                     std::string("127.0.0.1"), 10600);
       } catch (SocketException &e) {
-      }
+      }*/
     }
   }
   if (metadb->GetStat("leveldb.false_get_count_by_num_files", &metric)) {
@@ -362,12 +362,12 @@ void report_get_count(LevelDBAdaptor* metadb) {
       char metricString[128];
       sprintf(metricString,
              "tablefs.false_get_count_%d %d %d\n", i, now_time, r[i]);
-      UDPSocket sock;
+      /*UDPSocket sock;
       try {
         sock.sendTo(metricString, strlen(metricString),
                     std::string("127.0.0.1"), 10600);
       } catch (SocketException &e) {
-      }
+      }*/
     }
   }
 }

@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "util/properties.h"
-#include "util/logging.h"
+#include "util/tfs_logging.h"
 #include "leveldb/db.h"
 #include "leveldb/slice.h"
 #include "leveldb/iterator.h"

@@ -5,9 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_library(FUSE fuse)
 
-add_subdirectory(lib/leveldb LEVELDB_LIB)
+add_subdirectory(lib/leveldb)
 
 add_definitions(-D_FILE_OFFSET_BITS=64 )
+add_definitions(-DLEVELDB_PLATFORM_POSIX)
 
 add_library(tablefs_lib "")
 target_sources(tablefs_lib PRIVATE
@@ -15,8 +16,8 @@ target_sources(tablefs_lib PRIVATE
         "util/allocator.h"
         "util/command.cpp"
         "util/command.h"
-        "util/logging.cpp"
-        "util/logging.h"
+        "util/tfs_logging.cpp"
+        "util/tfs_logging.h"
         "util/myhash.cpp"
         "util/myhash.h"
         "util/properties.cpp"
@@ -42,7 +43,7 @@ target_sources(tablefs_lib PRIVATE
 
 target_include_directories(tablefs_lib PUBLIC include lib/leveldb lib/leveldb/include lib/leveldb/port .)
 
-target_link_libraries(tablefs_lib FUSE LEVELDB_LIB)
+target_link_libraries(tablefs_lib fuse leveldb)
 
 add_executable(tablefs "tablefs_main.cpp")
 target_link_libraries(tablefs tablefs_lib)

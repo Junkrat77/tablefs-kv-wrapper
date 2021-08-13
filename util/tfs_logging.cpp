@@ -5,7 +5,7 @@
  *      Author: kair
  */
 
-#include "logging.h"
+#include "tfs_logging.h"
 #include <sys/stat.h>
 
 namespace tablefs {
