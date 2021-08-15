@@ -29,6 +29,8 @@ target_sources(tablefs_lib PRIVATE
         "adaptor/kv_wrapper.h"
         "adaptor/statistics.cc"
         "adaptor/statistics.h"
+        "adaptor/leveldb_wrapper.cc"
+        "adaptor/leveldb_wrapper.h"
 
         "fs/dcache.cpp"
         "fs/dcache.h"

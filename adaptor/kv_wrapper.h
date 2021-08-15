@@ -6,6 +6,8 @@
 #define TABLEFS_KV_WRAPPER_H
 
 #include "leveldb/slice.h"
+#include "leveldb/write_batch.h"
+
 #include "statistics.h"
 #include "util/properties.h"
 #include "util/tfs_logging.h"
@@ -35,15 +37,19 @@ public:
     /*
      * Destroy the KVDB
      * */
-    virtual int Cleanup() = 0;
+    virtual void Cleanup() = 0;
 
     virtual int Put(const leveldb::Slice &key,
-                    const leveldb::Slice &values) = 0;
+                    const leveldb::Slice &value) = 0;
 
     virtual int Get(const leveldb::Slice &key,
                     std::string &result) = 0;
 
     virtual int Delete(const leveldb::Slice &key) = 0;
+
+    virtual int Write(leveldb::WriteBatch &batch) = 0;
+
+    virtual int Sync() = 0;
 
     virtual KvIterator* NewIterator() = 0;
 
