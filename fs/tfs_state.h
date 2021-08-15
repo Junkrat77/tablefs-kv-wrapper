@@ -10,7 +10,8 @@
 #include "leveldb/cache.h"
 #include "leveldb/db.h"
 #include "leveldb/iterator.h"
-#include "adaptor/leveldb_adaptor.h"
+//#include "adaptor/leveldb_adaptor.h"
+#include "adaptor/kv_wrapper.h"
 #include "util/properties.h"
 #include "util/logging.h"
 
@@ -21,7 +22,7 @@ struct FileSystemState {
   std::string datadir_;
   std::string mountdir_;
 
-  LevelDBAdaptor* metadb;
+  KvWrapper* metadb;
 
   tfs_inode_t max_inode_num;
   int threshold_;
@@ -36,7 +37,7 @@ struct FileSystemState {
 
   void Destroy();
 
-  LevelDBAdaptor* GetMetaDB() {
+  KvWrapper* GetMetaDB() {
       return metadb;
   }
 

@@ -55,6 +55,10 @@ public:
 
     void Report() {statistics.Report();};
 
+    virtual bool GetStat(std::string stat, std::string* value) = 0;
+
+    virtual bool GetMetric(std::string* value) = 0;
+
 private:
     Statistics statistics;
     Logging* logs_;

@@ -301,7 +301,7 @@ volatile int flag_monitor_thread_finish;
 pthread_mutex_t     mtx_monitor;
 pthread_cond_t      cv_monitor;
 
-void do_monitor(LevelDBAdaptor* metadb) {
+void do_monitor(KvWrapper* metadb) {
   std::string metric;
   if (metadb->GetMetric(&metric)) {
     const int metric_cnt = 13;
@@ -330,7 +330,7 @@ void do_monitor(LevelDBAdaptor* metadb) {
   }
 }
 
-void report_get_count(LevelDBAdaptor* metadb) {
+void report_get_count(KvWrapper* metadb) {
   std::string metric;
   if (metadb->GetStat("leveldb.get_count_by_num_files", &metric)) {
     const int metric_cnt = 20;
@@ -373,7 +373,7 @@ void report_get_count(LevelDBAdaptor* metadb) {
 }
 
 void* monitor_thread(void *v) {
-    LevelDBAdaptor* metadb= (LevelDBAdaptor*) v;
+    KvWrapper* metadb= (KvWrapper*) v;
 
     struct timespec wait;
     memset(&wait, 0, sizeof(wait)); /* ensure it's initialized */
@@ -401,7 +401,7 @@ void* monitor_thread(void *v) {
     return NULL;
 }
 
-void monitor_init(LevelDBAdaptor *mdb) {
+void monitor_init(KvWrapper *mdb) {
     stop_monitor_thread = 0;
     flag_monitor_thread_finish = 0;
     pthread_mutex_init(&(mtx_monitor), NULL);
@@ -1002,7 +1002,7 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
   BuildMetaKey(child_inumber,
               (child_inumber == ROOT_INODE_ID) ? 1 : 0,
               childkey);
-  LevelDBIterator* iter = metadb->GetNewIterator();
+  KvIterator* iter = metadb->NewIterator();
   if (filler(buf, ".", NULL, 0) < 0) {
     return FSError("Cannot read a directory");
   }
@@ -1207,7 +1207,8 @@ bool TableFS::GetStat(std::string stat, std::string* value) {
 }
 
 void TableFS::Compact() {
-  state_->GetMetaDB()->Compact();
+    // do not use
+  //state_->GetMetaDB()->Compact();
 }
 
 }

@@ -1,4 +1,5 @@
 #include "fs/tfs_state.h"
+#include "adaptor/leveldb_wrapper.h"
 #include <unistd.h>
 
 namespace tablefs {
@@ -35,7 +36,7 @@ int FileSystemState::Setup(Properties& prop) {
   prop_.setProperty("leveldb.db", metadir_+std::string("/meta"));
   prop_.setProperty("leveldb.create.if.missing.db", "true");
 
-  metadb = new LevelDBAdaptor();
+  metadb = new LeveldbWrapper();
   metadb->SetProperties(prop_);
   metadb->SetLogging(logs);
   if (metadb->Init() < 0) {

@@ -4,7 +4,7 @@
 
 namespace tablefs {
 
-LevelDBAdaptor* InodeCache::metadb_ = NULL;
+KvWrapper* InodeCache::metadb_ = NULL;
 int InodeCacheHandle::object_count = 0;
 
 void CleanInodeHandle(const leveldb::Slice &key, void* value) {

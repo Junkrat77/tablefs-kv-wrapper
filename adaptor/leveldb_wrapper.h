@@ -38,6 +38,10 @@ namespace tablefs {
 
         //void Report() {statistics.Report();};
 
+        bool GetStat(std::string stat, std::string* value) override;
+
+        bool GetMetric(std::string* value) override;
+
     private:
         Statistics statistics;
         Logging* logs_;

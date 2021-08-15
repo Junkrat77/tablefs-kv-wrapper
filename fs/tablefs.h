@@ -72,7 +72,7 @@ public:
 
 private:
   FileSystemState *state_;
-  LevelDBAdaptor* metadb;
+  KvWrapper* metadb;
   InodeCache *inode_cache;
   DentryCache *dentry_cache;
   InodeMutex fstree_lock;

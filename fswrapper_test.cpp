@@ -43,7 +43,7 @@ void TestFSWrapper(Properties &prop) {
   for (int i = 0; i < content_size; ++i)
     content[i] = rand() % 26 + 97;
   int fd;
-  for (int i = 0; i < 1000000; ++i) {
+  for (int i = 0; i < 1000; ++i) {
     sprintf(fpath, "/%08x\0", i);
     fs->Mknod(fpath, S_IRWXU | S_IRWXG | S_IRWXO, 0);
     fd = fs->Open(fpath, O_WRONLY);

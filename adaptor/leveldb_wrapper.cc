@@ -156,6 +156,14 @@ namespace tablefs{
         return new LeveldbIterator(iter);
     }
 
+    bool LeveldbWrapper::GetStat(std::string stat, std::string *value) {
+        return db_->GetProperty(stat, value);
+    }
+
+    bool LeveldbWrapper::GetMetric(std::string *value) {
+        return db_->GetProperty(Slice("leveldb.stats"), value);
+    }
+
     LeveldbIterator::~LeveldbIterator() {
         delete iter_;
     }

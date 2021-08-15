@@ -10,6 +10,9 @@ add_subdirectory(lib/leveldb)
 add_definitions(-D_FILE_OFFSET_BITS=64 )
 add_definitions(-DLEVELDB_PLATFORM_POSIX)
 
+option(BUILD_BENCH "build tablefs bench" OFF)
+option(BUILD_TEST "build fs_test" ON)
+
 add_library(tablefs_lib "")
 target_sources(tablefs_lib PRIVATE
         "util/allocator.cpp"
@@ -23,8 +26,6 @@ target_sources(tablefs_lib PRIVATE
         "util/properties.cpp"
         "util/properties.h"
 
-        "adaptor/leveldb_adaptor.cpp"
-        "adaptor/leveldb_adaptor.h"
         "adaptor/kv_wrapper.cc"
         "adaptor/kv_wrapper.h"
         "adaptor/statistics.cc"
@@ -54,7 +55,6 @@ target_link_libraries(tablefs_lib fuse leveldb)
 add_executable(tablefs "tablefs_main.cpp")
 target_link_libraries(tablefs tablefs_lib)
 
-option(BUILD_BENCH OFF)
 if (BUILD_BENCH)
     add_executable(tablefs_bench
             "util/monitor.cpp"
@@ -65,6 +65,14 @@ if (BUILD_BENCH)
             "util/traceloader.h"
             "fsbench.cpp"
             )
+    target_link_libraries(tablefs_bench tablefs_lib)
+endif ()
+
+if (BUILD_TEST)
+    add_executable(tablefs_test
+            "fswrapper_test.cpp"
+            )
+    target_link_libraries(tablefs_test tablefs_lib)
 endif ()
 
 

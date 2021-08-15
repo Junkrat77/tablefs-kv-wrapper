@@ -1,7 +1,8 @@
 #ifndef _META_MANAGER_H_
 #define _META_MANAGER_H_
 
-#include "adaptor/leveldb_adaptor.h"
+//#include "adaptor/leveldb_adaptor.h"
+#include "adaptor/kv_wrapper.h"
 #include "fs/inodemutex.h"
 #include "fs/tfs_inode.h"
 #include "leveldb/cache.h"
@@ -48,10 +49,10 @@ struct InodeCacheHandle {
 
 class InodeCache {
 public:
-  static LevelDBAdaptor* metadb_;
+  static KvWrapper* metadb_;
   leveldb::Cache* cache;
 
-  InodeCache(LevelDBAdaptor *metadb) {
+  InodeCache(KvWrapper *metadb) {
     cache = leveldb::NewLRUCache(MAX_OPEN_FILES);
     metadb_ = metadb;
   }
