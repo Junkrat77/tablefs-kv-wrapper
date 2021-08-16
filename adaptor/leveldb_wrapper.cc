@@ -56,6 +56,7 @@ namespace tablefs{
     }
 
     void LeveldbWrapper::Cleanup() {
+        statistics.Report();
         delete db_;
         delete cache_;
         db_ = nullptr;

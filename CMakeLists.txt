@@ -3,7 +3,8 @@ project(tablefs)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_library(FUSE fuse)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FUSE REQUIRED fuse)
 
 add_subdirectory(lib/leveldb)
 
@@ -48,7 +49,7 @@ target_sources(tablefs_lib PRIVATE
         "fs/tfs_state.h"
         )
 
-target_include_directories(tablefs_lib PUBLIC include lib/leveldb lib/leveldb/include lib/leveldb/port .)
+target_include_directories(tablefs_lib PUBLIC ${FUSE_INCLUDE_DIRS} include lib/leveldb lib/leveldb/include lib/leveldb/port .)
 
 target_link_libraries(tablefs_lib fuse leveldb)
 
