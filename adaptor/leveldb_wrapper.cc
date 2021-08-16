@@ -62,6 +62,7 @@ namespace tablefs{
     }
 
     int LeveldbWrapper::Put(const leveldb::Slice &key, const leveldb::Slice &value) {
+        statistics.RecordKVOperations(PUT);
         if (logon) {
             if (logs_ != nullptr) {
                 const int *data = (const int *) key.ToString().data();
@@ -98,6 +99,7 @@ namespace tablefs{
     }
 
     int LeveldbWrapper::Get(const leveldb::Slice &key, std::string &result) {
+        statistics.RecordKVOperations(GET);
         ReadOptions options;
         Status s = db_->Get(options, key, &result);
         if (logon) {
@@ -115,6 +117,7 @@ namespace tablefs{
     }
 
     int LeveldbWrapper::Delete(const leveldb::Slice &key) {
+        statistics.RecordKVOperations(DELETE);
         if (logon) {
             if (logs_ != NULL) {
                 const int *data = (const int *) key.ToString().data();
@@ -127,6 +130,8 @@ namespace tablefs{
     }
 
     int LeveldbWrapper::Write(leveldb::WriteBatch &batch) {
+        statistics.RecordKVOperations(PUT);
+        statistics.RecordKVOperations(DELETE);
         WriteOptions write_options;
         Status s = db_->Write(write_options, &batch);
         if (!s.ok()) {
@@ -138,6 +143,7 @@ namespace tablefs{
     int LeveldbWrapper::Sync() {
         WriteOptions write_options;
         write_options.sync = true;
+        statistics.RecordKVOperations(PUT);
         leveldb::Status status = db_->Put(write_options, "sync", "");
         if (status.ok()) {
             return 0;
@@ -147,6 +153,7 @@ namespace tablefs{
     }
 
     KvIterator *LeveldbWrapper::NewIterator() {
+        statistics.RecordKVOperations(PSCAN);
         ReadOptions read_options;
         if (logon) {
             if (logs_ != NULL)
