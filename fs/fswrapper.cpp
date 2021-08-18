@@ -40,6 +40,7 @@ TableFSWrapper::~TableFSWrapper() {
 }
 
 int TableFSWrapper::Mknod(const char* path, mode_t mode, dev_t dev) {
+    printf("mknod1[%s]\n", path);
   struct stat statbuf;
   int ret = Stat(path, &statbuf);
   if (ret == 0) {
@@ -336,6 +337,7 @@ void TableFSWrapper::ReleaseFileDescriptor(int fd) {
 }
 
 int TableFSTestWrapper::Mknod(const char* path, mode_t mode, dev_t dev) {
+    printf("mknod2[%s]\n", path);
   struct stat statbuf;
   leveldb::Slice key(path, strlen(path));
   int ret = Stat(path, &statbuf);

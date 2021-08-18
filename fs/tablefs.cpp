@@ -507,7 +507,12 @@ void TableFS::GetDiskFilePath(char *path, tfs_inode_t inode_id) {
 int TableFS::OpenDiskFile(const tfs_inode_header* iheader, int flags) {
   char fpath[128];
   GetDiskFilePath(fpath, iheader->fstat.st_ino);
+    printf("open disk file %s\n", fpath);
   int fd = open(fpath, flags | O_CREAT, iheader->fstat.st_mode);
+    if (fd == -1) {
+        printf("%s\n", strerror(errno));
+        exit(-1);
+    }
 #ifdef  TABLEFS_DEBUG
   state_->GetLog()->LogMsg("OpenDiskFile: %s InodeID: %d FD: %d\n",
                            fpath, iheader->fstat.st_ino, fd);
@@ -566,6 +571,7 @@ void TableFS::CloseDiskFile(int& fd_) {
 }
 
 int TableFS::Open(const char *path, struct fuse_file_info *fi) {
+    printf("\nopen %s\n", path);
 #ifdef  TABLEFS_DEBUG
   state_->GetLog()->LogMsg("Open: %s, Flags: %d\n", path, fi->flags);
 #endif
@@ -574,18 +580,22 @@ int TableFS::Open(const char *path, struct fuse_file_info *fi) {
   if (!PathLookup(path, key)) {
     return FSError("Open: No such file or directory\n");
   }
+    printf("path lookup\n");
   fstree_lock.WriteLock(key);
   InodeCacheHandle* handle = NULL;
   if ((fi->flags & O_RDWR) > 0 ||
       (fi->flags & O_WRONLY) > 0 ||
       (fi->flags & O_TRUNC) > 0) {
     handle = inode_cache->Get(key, INODE_WRITE);
+    if (handle == nullptr) printf("write handle is null\n");
   } else {
     handle = inode_cache->Get(key, INODE_READ);
+      if (handle == nullptr) printf("read handle is null\n");
   }
 
   int ret = 0;
   if (handle != NULL) {
+      printf("handle is not null\n");
     tfs_file_handle_t* fh = new tfs_file_handle_t();
     fh->handle_ = handle;
     fh->flags_ = fi->flags;
@@ -609,6 +619,7 @@ int TableFS::Open(const char *path, struct fuse_file_info *fi) {
       delete fh;
     }
   } else {
+      printf("ENOENT\n");
     ret = -ENOENT;
   }
   fstree_lock.Unlock(key);
