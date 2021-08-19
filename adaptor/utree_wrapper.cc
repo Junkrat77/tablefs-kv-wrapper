@@ -14,14 +14,14 @@ namespace tablefs {
     const size_t PMEM_SIZE = 10 * 1024 * 1024 * 1024UL;
 
     void DEBUG_KEY(int64_t key, std::string func){
-        printf("[%s]: ", func.c_str());
+        /*printf("[%s]: ", func.c_str());
         size_t* s = (size_t*)key;
         printf("size = %llu\n", *s);
         char* raw_key = (char*)key + sizeof(size_t);
         for (size_t i = 0; i < *s; ++i) {
             printf("%d ", raw_key[i]);
         }
-        printf("\n");
+        printf("\n");*/
     }
 
     char* persist_slice(const leveldb::Slice &key){
@@ -90,11 +90,6 @@ public:
     }
 
     int uTreeWrapper::Put(const leveldb::Slice &key, const leveldb::Slice &value) {
-        printf("put [");
-        for (int i = 0; i < key.size(); ++i) {
-            printf("%02X ", key.data()[i]);
-        }
-        printf("]\n");
         char* nvm_key = persist_slice(key);
         char* nvm_value = persist_slice(value);
         DEBUG_KEY((int64_t)nvm_key, "Wrapper::put");
@@ -103,10 +98,8 @@ public:
         int res = Get(key, v);
         switch (res) {
             case 0:
-                printf("not found just insert\n");
                 break;
             case 1:
-                printf("found\n");
                 break;
             default: break;
         }
@@ -114,11 +107,10 @@ public:
     }
 
     int uTreeWrapper::Get(const leveldb::Slice &key, std::string &result) {
-        //printf("get [%s]\n", key.ToString().c_str());
-        for (int i = 0; i < key.size(); ++i) {
+        /*for (int i = 0; i < key.size(); ++i) {
             printf("%d ", key.data()[i]);
         }
-        printf("\n");
+        printf("\n");*/
         char lookup_key[key.size() + sizeof(size_t)];
         size_t key_size = key.size();
         memcpy(lookup_key, (char*)(&key_size), sizeof(size_t));
@@ -126,18 +118,18 @@ public:
         char* res = utree_->search((int64_t)(lookup_key));
         if (res != nullptr) {
             size_t* s = (size_t*)(res);
-            printf("%d\n", *s);
-            printf("res [%s]\n", Slice(res + sizeof(size_t), *s).ToString().c_str());
-            printf("found[%s]\n", result.c_str());
+            //printf("%d\n", *s);
+            //printf("res [%s]\n", Slice(res + sizeof(size_t), *s).ToString().c_str());
+            //printf("found[%s]\n", result.c_str());
             return 1;
         } else {
-            printf("not found[");
+            /*printf("not found[");
             for (int i = 0; i < key.size(); ++i) {
                 printf("%d ", key.data()[i]);
             }
-            printf("]\n");
+            printf("]\n");*/
+            return 0;
         }
-        return 0;
     }
 
     int uTreeWrapper::Delete(const leveldb::Slice &key) {
