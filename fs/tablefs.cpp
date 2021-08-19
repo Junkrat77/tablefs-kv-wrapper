@@ -508,6 +508,10 @@ int TableFS::OpenDiskFile(const tfs_inode_header* iheader, int flags) {
   char fpath[128];
   GetDiskFilePath(fpath, iheader->fstat.st_ino);
   int fd = open(fpath, flags | O_CREAT, iheader->fstat.st_mode);
+    if (fd == -1) {
+        fprintf(stderr, "%s\n", strerror(errno));
+        exit(-1);
+    }
 #ifdef  TABLEFS_DEBUG
   state_->GetLog()->LogMsg("OpenDiskFile: %s InodeID: %d FD: %d\n",
                            fpath, iheader->fstat.st_ino, fd);
@@ -580,8 +584,10 @@ int TableFS::Open(const char *path, struct fuse_file_info *fi) {
       (fi->flags & O_WRONLY) > 0 ||
       (fi->flags & O_TRUNC) > 0) {
     handle = inode_cache->Get(key, INODE_WRITE);
+    if (handle == nullptr) printf("write handle is null\n");
   } else {
     handle = inode_cache->Get(key, INODE_READ);
+      if (handle == nullptr) printf("read handle is null\n");
   }
 
   int ret = 0;
@@ -609,6 +615,7 @@ int TableFS::Open(const char *path, struct fuse_file_info *fi) {
       delete fh;
     }
   } else {
+      printf("ENOENT\n");
     ret = -ENOENT;
   }
   fstree_lock.Unlock(key);
