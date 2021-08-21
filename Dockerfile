@@ -1,7 +1,8 @@
 FROM centos:centos8.3.2011
 # set up basic build environment
-RUN yum install -y automake autoconf libtool make gcc gcc-c++ gdb libarchive cmake gdb-gdbserver&& \
+RUN yum install -y automake autoconf libtool make gcc gcc-c++ gdb libarchive cmake gdb-gdbserver && \
     yum install -y libpmem libpmem-devel libpmemobj libpmemobj-devel libvmem libpmemobj++-devel &&\
+    yum install -y tbb-devel &&\
     yum install -y git vim &&\
     yum install -y fuse fuse-common fuse-devel fuse-libs fuse-overlayfs && \
     mkdir /home/tablefs

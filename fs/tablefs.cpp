@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <pthread.h>
 #include <sstream>
+#include <fstream>
 #include "fs/tablefs.h"
 #include "util/myhash.h"
 #include "util/mutexlock.h"
@@ -27,6 +28,10 @@
 #include "leveldb/db.h"
 #include "leveldb/cache.h"
 #include "leveldb/write_batch.h"
+#define RECORD_SCAN
+#ifdef RECORD_SCAN
+const std::string scan_file = "/home/zhangyiwen/tablefs-petakv/scan.log";
+#endif
 
 namespace tablefs {
 
@@ -1009,6 +1014,11 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
   BuildMetaKey(child_inumber,
               (child_inumber == ROOT_INODE_ID) ? 1 : 0,
               childkey);
+#ifdef RECORD_SCAN
+  std::ofstream scan_log;
+  scan_log.open(scan_file, std::ios::out | std::ios::app);
+  scan_log << "---\n";
+#endif
   KvIterator* iter = metadb->NewIterator();
   if (filler(buf, ".", NULL, 0) < 0) {
     return FSError("Cannot read a directory");
@@ -1019,6 +1029,9 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
   for (iter->Seek(childkey.ToSlice());
        iter->Valid() && IsKeyInDir(iter->key(), childkey);
        iter->Next()) {
+#ifdef RECORD_SCAN
+      scan_log << iter->key().ToString() << "\n";
+#endif
     const char* name_buffer = iter->value().data() + TFS_INODE_HEADER_SIZE;
     if (name_buffer[0] == '\0') {
         continue;
@@ -1031,6 +1044,10 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
     }
   }
   delete iter;
+#ifdef RECORD_SCAN
+  scan_log << "\n";
+  scan_log.close();
+#endif
   return ret;
 }
 

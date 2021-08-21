@@ -38,8 +38,8 @@ int FileSystemState::Setup(Properties& prop) {
   prop_.setProperty("leveldb.db", metadir_+std::string("/meta"));
   prop_.setProperty("leveldb.create.if.missing.db", "true");
 
-  //metadb = new LeveldbWrapper();
-  metadb = new uTreeWrapper();
+  metadb = new LeveldbWrapper();
+  //metadb = new uTreeWrapper();
   metadb->SetProperties(prop_);
   metadb->SetLogging(logs);
   if (metadb->Init() < 0) {
