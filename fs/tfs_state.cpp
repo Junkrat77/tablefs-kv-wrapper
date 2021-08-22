@@ -1,6 +1,8 @@
+#include <unistd.h>
+
 #include "fs/tfs_state.h"
 #include "adaptor/leveldb_wrapper.h"
-#include <unistd.h>
+#include "adaptor/utree_wrapper.h"
 
 namespace tablefs {
 
@@ -37,6 +39,7 @@ int FileSystemState::Setup(Properties& prop) {
   prop_.setProperty("leveldb.create.if.missing.db", "true");
 
   metadb = new LeveldbWrapper();
+  //metadb = new uTreeWrapper();
   metadb->SetProperties(prop_);
   metadb->SetLogging(logs);
   if (metadb->Init() < 0) {

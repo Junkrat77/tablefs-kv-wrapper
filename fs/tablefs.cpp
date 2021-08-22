@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <pthread.h>
 #include <sstream>
+#include <fstream>
 #include "fs/tablefs.h"
 #include "util/myhash.h"
 #include "util/mutexlock.h"
@@ -27,6 +28,10 @@
 #include "leveldb/db.h"
 #include "leveldb/cache.h"
 #include "leveldb/write_batch.h"
+#define RECORD_SCAN
+#ifdef RECORD_SCAN
+const std::string scan_file = "/home/zhangyiwen/tablefs-petakv/scan.log";
+#endif
 
 namespace tablefs {
 
@@ -508,6 +513,10 @@ int TableFS::OpenDiskFile(const tfs_inode_header* iheader, int flags) {
   char fpath[128];
   GetDiskFilePath(fpath, iheader->fstat.st_ino);
   int fd = open(fpath, flags | O_CREAT, iheader->fstat.st_mode);
+    if (fd == -1) {
+        fprintf(stderr, "%s\n", strerror(errno));
+        exit(-1);
+    }
 #ifdef  TABLEFS_DEBUG
   state_->GetLog()->LogMsg("OpenDiskFile: %s InodeID: %d FD: %d\n",
                            fpath, iheader->fstat.st_ino, fd);
@@ -580,8 +589,10 @@ int TableFS::Open(const char *path, struct fuse_file_info *fi) {
       (fi->flags & O_WRONLY) > 0 ||
       (fi->flags & O_TRUNC) > 0) {
     handle = inode_cache->Get(key, INODE_WRITE);
+    if (handle == nullptr) printf("write handle is null\n");
   } else {
     handle = inode_cache->Get(key, INODE_READ);
+      if (handle == nullptr) printf("read handle is null\n");
   }
 
   int ret = 0;
@@ -609,6 +620,7 @@ int TableFS::Open(const char *path, struct fuse_file_info *fi) {
       delete fh;
     }
   } else {
+      printf("ENOENT\n");
     ret = -ENOENT;
   }
   fstree_lock.Unlock(key);
@@ -1002,6 +1014,11 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
   BuildMetaKey(child_inumber,
               (child_inumber == ROOT_INODE_ID) ? 1 : 0,
               childkey);
+#ifdef RECORD_SCAN
+  std::ofstream scan_log;
+  scan_log.open(scan_file, std::ios::out | std::ios::app);
+  scan_log << "---\n";
+#endif
   KvIterator* iter = metadb->NewIterator();
   if (filler(buf, ".", NULL, 0) < 0) {
     return FSError("Cannot read a directory");
@@ -1012,6 +1029,9 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
   for (iter->Seek(childkey.ToSlice());
        iter->Valid() && IsKeyInDir(iter->key(), childkey);
        iter->Next()) {
+#ifdef RECORD_SCAN
+      scan_log << iter->key().ToString() << "\n";
+#endif
     const char* name_buffer = iter->value().data() + TFS_INODE_HEADER_SIZE;
     if (name_buffer[0] == '\0') {
         continue;
@@ -1024,6 +1044,10 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
     }
   }
   delete iter;
+#ifdef RECORD_SCAN
+  scan_log << "\n";
+  scan_log.close();
+#endif
   return ret;
 }
 

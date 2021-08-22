@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.14)
 project(tablefs)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_library(FUSE fuse)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FUSE REQUIRED fuse)
+pkg_check_modules(LIBPMEM REQUIRED libpmem)
 
 add_subdirectory(lib/leveldb)
 
@@ -12,6 +14,8 @@ add_definitions(-DLEVELDB_PLATFORM_POSIX)
 
 option(BUILD_BENCH "build tablefs bench" OFF)
 option(BUILD_TEST "build fs_test" ON)
+
+option(WITH_UTREE "build tablefs with utree" ON)
 
 add_library(tablefs_lib "")
 target_sources(tablefs_lib PRIVATE
@@ -32,6 +36,8 @@ target_sources(tablefs_lib PRIVATE
         "adaptor/statistics.h"
         "adaptor/leveldb_wrapper.cc"
         "adaptor/leveldb_wrapper.h"
+        "adaptor/utree_wrapper.cc"
+        "adaptor/utree_wrapper.h"
 
         "fs/dcache.cpp"
         "fs/dcache.h"
@@ -48,9 +54,14 @@ target_sources(tablefs_lib PRIVATE
         "fs/tfs_state.h"
         )
 
-target_include_directories(tablefs_lib PUBLIC include lib/leveldb lib/leveldb/include lib/leveldb/port .)
+target_include_directories(tablefs_lib PUBLIC ${FUSE_INCLUDE_DIRS} ${LIBPMEM_INCLUDE_DIRS} include lib/leveldb lib/leveldb/include lib/leveldb/port .)
+if (WITH_UTREE)
+    add_subdirectory(kv/utree/singleThread/uTree)
+    target_include_directories(tablefs_lib PUBLIC kv/utree/singleThread/uTree)
+    target_link_libraries(tablefs_lib utree)
+endif ()
 
-target_link_libraries(tablefs_lib fuse leveldb)
+target_link_libraries(tablefs_lib leveldb ${LIBPMEM_LIBRARIES} ${FUSE_LIBRARIES})
 
 add_executable(tablefs "tablefs_main.cpp")
 target_link_libraries(tablefs tablefs_lib)
@@ -69,6 +80,21 @@ if (BUILD_BENCH)
 endif ()
 
 if (BUILD_TEST)
+    add_executable(utree_wrapper_test "")
+    target_sources(utree_wrapper_test PUBLIC
+            "adaptor/utree_wrapper_test.cc"
+            "adaptor/utree_wrapper.cc"
+            "adaptor/utree_wrapper.h"
+            "adaptor/kv_wrapper.cc"
+            "adaptor/kv_wrapper.h"
+            "adaptor/statistics.cc"
+            "adaptor/statistics.h"
+            "util/properties.cpp"
+            "util/properties.h"
+            )
+    target_include_directories(utree_wrapper_test PUBLIC kv/utree/singleThread/uTree lib/leveldb lib/leveldb/include include .)
+    target_link_libraries(utree_wrapper_test utree leveldb ${LIBPMEM_LIBRARIES})
+
     add_executable(tablefs_test
             "fswrapper_test.cpp"
             )

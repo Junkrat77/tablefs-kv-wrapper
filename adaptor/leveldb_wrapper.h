@@ -16,7 +16,7 @@ namespace tablefs {
     class LeveldbWrapper : public KvWrapper {
     public:
         LeveldbWrapper() =default;
-        ~LeveldbWrapper() override {statistics.Report();};
+        ~LeveldbWrapper() override =default;
 
         int Init() override;
 

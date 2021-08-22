@@ -47,20 +47,23 @@ void TestFSWrapper(Properties &prop) {
     sprintf(fpath, "/%08x\0", i);
     fs->Mknod(fpath, S_IRWXU | S_IRWXG | S_IRWXO, 0);
     fd = fs->Open(fpath, O_WRONLY);
+      if (fd == -1) {
+          printf("open failed\n");
+      }
     fs->Write(fd, content, content_size);
     fs->Close(fd);
   }
 
   delete fs;
 
-  fs = new TableFSWrapper();
+  /*fs = new TableFSWrapper();
   ASSERT(fs->Setup(prop) == 0);
 
   fd = fs->Open(fpath, O_RDONLY);
   fs->Read(fd, content, content_size);
   fs->Close(fd);
 
-  delete fs;
+  delete fs;*/
 }
 
 int main(int argc, char *argv[]) {
