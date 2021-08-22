@@ -4,7 +4,10 @@ RUN yum install -y automake autoconf libtool make gcc gcc-c++ gdb libarchive cma
     yum install -y libpmem libpmem-devel libpmemobj libpmemobj-devel libvmem libpmemobj++-devel &&\
     yum install -y git vim &&\
     yum install -y fuse fuse-common fuse-devel fuse-libs fuse-overlayfs && \
-    mkdir /home/tablefs
+    mkdir /home/tablefs \
+    \
+RUN sed -ri 's/enabled=0/enabled=1/g'  /etc/yum.repos.d/CentOS-Linux-PowerTools.repo && \
+    yum install -y gflags gflags-devel zlib zlib-devel snappy snappy-devel
 
 # set up remote access
 RUN yum install -y openssl openssh-server rsync && \
