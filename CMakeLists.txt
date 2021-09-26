@@ -17,6 +17,7 @@ option(BUILD_TEST "build fs_test" ON)
 
 option(WITH_UTREE "build tablefs with utree" ON)
 option(WITH_ROCKSDB "build tablefs with rocksdb" ON)
+option(WITH_METAKV "build tablefs with metakv" ON)
 
 link_libraries(${LIBPMEM_LIBRARIES})
 include_directories(${LIBPMEM_INCLUDE_DIRS})
@@ -44,6 +45,8 @@ target_sources(tablefs_lib PRIVATE
         "adaptor/utree_wrapper.h"
         "adaptor/rocksdb_wrapper.cc"
         "adaptor/rocksdb_wrapper.h"
+        "adaptor/metakv_wrapper.cc"
+        "adaptor/metakv_wrapper.h"
 
         "fs/dcache.cpp"
         "fs/dcache.h"
@@ -73,6 +76,14 @@ if (WITH_ROCKSDB)
     add_subdirectory(kv/pmem-rocksdb)
     target_include_directories(tablefs_lib PUBLIC kv/pmem-rocksdb/include)
     target_link_libraries(tablefs_lib rocksdb)
+endif ()
+
+if (WITH_METAKV)
+    find_library(CLHT_LIBRARIES NAMES clht PATHS kv/metakv/src/CLHT REQUIRED)
+    find_library(SSMEM_LIBRARIES NAMES ssmem PATHS kv/metakv/src/CLHT REQUIRED)
+    add_subdirectory(kv/metakv)
+    target_include_directories(tablefs_lib PUBLIC kv/metakv)
+    target_link_libraries(tablefs_lib metakv)
 endif ()
 
 target_link_libraries(tablefs_lib leveldb ${FUSE_LIBRARIES})

@@ -5,3 +5,7 @@
 	path = kv/pmem-rocksdb
 	url = https://github.com/GlitterIsMe/pmem-rocksdb.git
 	branch = developing
+[submodule "kv/metakv"]
+	path = kv/metakv
+	url = https://github.com/HUSTERGS/MetaKV.git
+	branch = zyw-new-layout
