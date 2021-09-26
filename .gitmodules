@@ -1,3 +1,7 @@
 [submodule "kv/utree"]
 	path = kv/utree
 	url = https://github.com.cnpmjs.org/GlitterIsMe/nvm-datastructure.git
+[submodule "kv/pmem-rocksdb"]
+	path = kv/pmem-rocksdb
+	url = https://github.com/GlitterIsMe/pmem-rocksdb.git
+	branch = developing

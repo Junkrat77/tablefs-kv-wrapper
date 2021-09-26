@@ -1030,7 +1030,8 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
        iter->Valid() && IsKeyInDir(iter->key(), childkey);
        iter->Next()) {
 #ifdef RECORD_SCAN
-      scan_log << iter->key().ToString() << "\n";
+      tfs_meta_key_t *tmp = (tfs_meta_key_t*)(iter->key().data());
+      scan_log << tmp->inode_id << "," << tmp->hash_id << "\n";
 #endif
     const char* name_buffer = iter->value().data() + TFS_INODE_HEADER_SIZE;
     if (name_buffer[0] == '\0') {

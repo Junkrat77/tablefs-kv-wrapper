@@ -6,6 +6,7 @@ services:
 
     volumes:
       - .:/home/tablefs
+      - /Users/Zhangyiwen/Documents/dockerfile:/mnt
     ports:
       - "45678:22"
     cap_add:

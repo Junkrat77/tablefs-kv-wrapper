@@ -16,6 +16,10 @@ option(BUILD_BENCH "build tablefs bench" OFF)
 option(BUILD_TEST "build fs_test" ON)
 
 option(WITH_UTREE "build tablefs with utree" ON)
+option(WITH_ROCKSDB "build tablefs with rocksdb" ON)
+
+link_libraries(${LIBPMEM_LIBRARIES})
+include_directories(${LIBPMEM_INCLUDE_DIRS})
 
 add_library(tablefs_lib "")
 target_sources(tablefs_lib PRIVATE
@@ -38,6 +42,8 @@ target_sources(tablefs_lib PRIVATE
         "adaptor/leveldb_wrapper.h"
         "adaptor/utree_wrapper.cc"
         "adaptor/utree_wrapper.h"
+        "adaptor/rocksdb_wrapper.cc"
+        "adaptor/rocksdb_wrapper.h"
 
         "fs/dcache.cpp"
         "fs/dcache.h"
@@ -54,14 +60,22 @@ target_sources(tablefs_lib PRIVATE
         "fs/tfs_state.h"
         )
 
-target_include_directories(tablefs_lib PUBLIC ${FUSE_INCLUDE_DIRS} ${LIBPMEM_INCLUDE_DIRS} include lib/leveldb lib/leveldb/include lib/leveldb/port .)
+target_include_directories(tablefs_lib PUBLIC ${FUSE_INCLUDE_DIRS} include lib/leveldb lib/leveldb/include lib/leveldb/port .)
 if (WITH_UTREE)
     add_subdirectory(kv/utree/singleThread/uTree)
     target_include_directories(tablefs_lib PUBLIC kv/utree/singleThread/uTree)
     target_link_libraries(tablefs_lib utree)
 endif ()
 
-target_link_libraries(tablefs_lib leveldb ${LIBPMEM_LIBRARIES} ${FUSE_LIBRARIES})
+if (WITH_ROCKSDB)
+    add_definitions(-DWITH_DCPMM)
+    add_definitions(-DON_DCPMM)
+    add_subdirectory(kv/pmem-rocksdb)
+    target_include_directories(tablefs_lib PUBLIC kv/pmem-rocksdb/include)
+    target_link_libraries(tablefs_lib rocksdb)
+endif ()
+
+target_link_libraries(tablefs_lib leveldb ${FUSE_LIBRARIES})
 
 add_executable(tablefs "tablefs_main.cpp")
 target_link_libraries(tablefs tablefs_lib)
@@ -85,6 +99,8 @@ if (BUILD_TEST)
             "adaptor/utree_wrapper_test.cc"
             "adaptor/utree_wrapper.cc"
             "adaptor/utree_wrapper.h"
+            "adaptor/rocksdb_wrapper.cc"
+            "adaptor/rocksdb_wrapper.h"
             "adaptor/kv_wrapper.cc"
             "adaptor/kv_wrapper.h"
             "adaptor/statistics.cc"
