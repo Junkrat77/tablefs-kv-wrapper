@@ -28,9 +28,9 @@ namespace tablefs {
                 suffix_(std::move(suffix)){}
 
         tfsKey(leveldb::Slice key) {
-            tfs_meta_key_t *raw_key = (tfs_meta_key_t*)(key.data());
-            prefix_ = std::move(std::to_string(raw_key->inode_id));
-            suffix_ = std::move(std::to_string(raw_key->hash_id));
+            //tfs_meta_key_t *raw_key = (tfs_meta_key_t*)(key.data());
+            prefix_ = std::string(key.data(), 8);
+            suffix_ = std::string(key.data() + 8, 8);
         }
 
         size_t EncodeSize() override {
@@ -152,7 +152,8 @@ namespace tablefs {
 
     private:
         std::vector<LogEntryRecord> dentry;
-        std::vector<LogEntryRecord>::iterator iter;
+        //std::vector<LogEntryRecord>::iterator iter;
+        size_t cursor{0};
         MetaDB* db_;
     };
 

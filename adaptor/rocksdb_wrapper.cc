@@ -20,7 +20,8 @@ namespace tablefs {
         assert(db_ == nullptr);
         int F_cache_size = p_.getPropertyInt("leveldb.cache.size", 16 << 20);
         cache_ = (F_cache_size >= 0) ? rocksdb::NewLRUCache(F_cache_size) : NULL;
-        db_name = p_.getProperty("leveldb.db", "/tmp/db");
+        db_name = p_.getProperty("leveldb.db", "/mnt/pmem/tablefs-meta/rocksdb");
+
         rocksdb::Options options;
         options.create_if_missing =
                 p_.getPropertyBool("leveldb.create.if.missing.db", true);
@@ -36,14 +37,6 @@ namespace tablefs {
                 p_.getPropertyInt("leveldb_write_buffer_size", 16 << 20);
         options.max_open_files =
                 p_.getPropertyInt("leveldb.max.open.files", 800);
-        //options.filter_policy = rocksdb::NewBloomFilterPolicy(12);
-        //options.limit_sst_file_size =
-        //        p_.getPropertyInt("leveldb_limit_sst_file_size", 2097152);
-
-        //options.limit_level_zero=
-        //        p_.getPropertyInt("leveldb_limit_level_zero", 10);
-        //options.factor_level_files=
-        //        p_.getPropertyInt("leveldb_factor_level_files", 10);
         options.max_bytes_for_level_base = p_.getPropertyInt("leveldb_limit_sst_file_size",
                                                              rocksdb::Options().max_bytes_for_level_base);
         options.max_bytes_for_level_multiplier = p_.getPropertyInt("leveldb_factor_level_files",
@@ -52,6 +45,13 @@ namespace tablefs {
                                                                        rocksdb::Options().level0_file_num_compaction_trigger);
 
         options.max_background_jobs = 2;
+
+        // DCPMM
+        options.dcpmm_kvs_enable = true;
+        options.dcpmm_kvs_mmapped_file_fullpath = "/mnt/pmem/tablefs-meta/pmem-rocksdb";
+        options.dcpmm_kvs_mmapped_file_size = 40UL * 1024 * 1024 * 1024;
+        options.recycle_dcpmm_sst = true;
+        options.env = rocksdb::NewDCPMMEnv(rocksdb::DCPMMEnvOptions());
 
         if (logs_ != nullptr) {
             logs_->LogMsg("limit level: %d\n", options.max_bytes_for_level_base);
@@ -75,11 +75,13 @@ namespace tablefs {
 
     void RocksdbWrapper::Cleanup() {
         statistics.Report();
+        db_->Close();
         delete db_;
         db_ = nullptr;
     }
 
     int RocksdbWrapper::Put(const leveldb::Slice &key, const leveldb::Slice &value) {
+        //fprintf(stderr, "put\n");
         statistics.RecordKVOperations(PUT);
         if (logon) {
             if (logs_ != nullptr) {
@@ -102,8 +104,28 @@ namespace tablefs {
             }
         }
 
-        Status status = db_->Put(rocksdb::WriteOptions(), rocksdb::Slice(key.data(), key.size()),
+        rocksdb::WriteOptions opt;
+        Status status = db_->Put(opt, rocksdb::Slice(key.data(), key.size()),
                                  rocksdb::Slice(value.data(), value.size()));
+        /*rocksdb::Slice _key = rocksdb::Slice(key.data(), key.size());
+        for (int i = 0; i < _key.size(); i++) {
+            printf("%x ", _key.data()[i]);
+        }
+        printf(" inserted \n");*/
+
+        /*rocksdb::Iterator* iter = db_->NewIterator(rocksdb::ReadOptions());
+        for (iter->SeekToFirst(); iter->Valid(); iter->Next()) {
+            rocksdb::Slice ikey = iter->key();
+            for (int i = 0; i < ikey.size(); i++) {
+                printf("%x ", ikey.data()[i]);
+            }
+            printf(" iter put \n");
+        }*/
+
+        /*std::string res;
+        status = db_->Get(rocksdb::ReadOptions(), rocksdb::Slice(key.data(), key.size()), &res);
+        printf("not found %s\n", status.IsNotFound() ? "!" : "no, founded");*/
+
         if (status.ok()) {
             return 0;
         } else {
@@ -117,24 +139,59 @@ namespace tablefs {
     }
 
     int RocksdbWrapper::Get(const leveldb::Slice &key, std::string &result) {
+        //printf("db instance %p\n", this);
+        //fprintf(stderr, "get\n");
+
+        /*rocksdb::Iterator* iter = db_->NewIterator(rocksdb::ReadOptions());
+        for (iter->SeekToFirst(); iter->Valid(); iter->Next()) {
+            rocksdb::Slice ikey = iter->key();
+            for (int i = 0; i < ikey.size(); i++) {
+                printf("%x ", ikey.data()[i]);
+            }
+            printf(" iter \n");
+        }*/
+
         statistics.RecordKVOperations(GET);
         rocksdb::ReadOptions options;
-        Status s = db_->Get(options, rocksdb::Slice(key.data(), key.size()), &result);
+        options.skip_memtable = false;
+
+        rocksdb::Slice _key = rocksdb::Slice(key.data(), key.size());
+        /*for (int i = 0; i < _key.size(); i++) {
+            printf("%x ", _key.data()[i]);
+        }
+        printf(" get \n");*/
+
+        Status s = db_->Get(options, _key, &result);
         if (logon) {
             if (logs_ != NULL) {
                 const int *data = (const int *) key.ToString().data();
                 logs_->LogMsg("read %s %d %x\n", db_name.c_str(), data[0], data[1]);
             }
         }
-        if (!s.ok()) {
+
+        /*rocksdb::Iterator* iter = db_->NewIterator(rocksdb::ReadOptions());
+        for (iter->SeekToFirst(); iter->Valid(); iter->Next()) {
+            rocksdb::Slice ikey = iter->key();
+            for (int i = 0; i < ikey.size(); i++) {
+                printf("%x ", ikey.data()[i]);
+            }
+            printf(" iter \n");
+        }*/
+
+        if (s.IsNotFound()) {
+            //printf("not found\n");
+            return 0;
+        } else if (!s.ok()) {
+            fprintf(stderr, "end get failed %s\n", s.ToString().c_str());
             result = s.ToString();
             return -1;
         } else {
-            return (s.IsNotFound()) ? 0 : 1;
+            return 1;
         }
     }
 
     int RocksdbWrapper::Delete(const leveldb::Slice &key) {
+        //fprintf(stderr, "delete\n");
         statistics.RecordKVOperations(DELETE);
         if (logon) {
             if (logs_ != NULL) {
@@ -165,6 +222,7 @@ namespace tablefs {
     };
 
     int RocksdbWrapper::Write(leveldb::WriteBatch &batch) {
+        //fprintf(stderr, "write\n");
         statistics.RecordKVOperations(PUT);
         statistics.RecordKVOperations(DELETE);
         rocksdb::WriteBatch rbatch;
@@ -178,6 +236,7 @@ namespace tablefs {
     }
 
     int RocksdbWrapper::Sync() {
+        //fprintf(stderr, "sync\n");
         rocksdb::WriteOptions write_options;
         write_options.sync = true;
         statistics.RecordKVOperations(PUT);
@@ -192,6 +251,7 @@ namespace tablefs {
     KvIterator *RocksdbWrapper::NewIterator() {
         statistics.RecordKVOperations(PSCAN);
         rocksdb::ReadOptions read_options;
+        read_options.skip_memtable = false;
         if (logon) {
             if (logs_ != NULL)
                 logs_->LogMsg("iterator\n");
@@ -201,11 +261,11 @@ namespace tablefs {
     }
 
     bool RocksdbWrapper::GetStat(std::string stat, std::string *value) {
-        return db_->GetProperty(stat, value);
+        return true;
     }
 
     bool RocksdbWrapper::GetMetric(std::string *value) {
-        return db_->GetProperty(rocksdb::Slice("rocksdb.stats"), value);
+        return true;
     }
 
     RocksdbIterator::~RocksdbIterator() {

@@ -52,7 +52,11 @@ void TestFSWrapper(Properties &prop) {
       }
     fs->Write(fd, content, content_size);
     fs->Close(fd);
+      if (i % 500 == 0) {
+          printf("finished %d\r", i);
+      }
   }
+  fs->Listdir(fpath);
 
   delete fs;
 

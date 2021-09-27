@@ -9,11 +9,11 @@ namespace tablefs{
 
     int MetaKVWrapper::Init() {
         Options options;
-        options.cceh_file_size = 32UL * 1024 * 1024 * 1024;
-        options.data_file_size = 128UL * 1024 * 1024 * 1024;
+        options.cceh_file_size = 100UL * 1024 * 1024 * 1024;
+        options.data_file_size = 80UL * 1024 * 1024 * 1024;
         db_ = MetaDB{};
 
-        path_ = p_.getProperty("leveldb.db", "/mnt/pmem/db");
+        path_ = p_.getProperty("leveldb.db", "/mnt/pmem/tablefs-metakv");
         db_.Open(options, path_);
 
         logon = p_.getPropertyBool("leveldb.logon", false);
@@ -21,9 +21,11 @@ namespace tablefs{
         sync_size_limit = p_.getPropertyInt("leveldb.sync.size.limit", -1);
         last_sync_time = time(nullptr);
         async_data_size = 0;
+        return 1;
     }
 
     void MetaKVWrapper::Cleanup() {
+
     }
 
     int MetaKVWrapper::Put(const leveldb::Slice &key, const leveldb::Slice &value) {
@@ -130,30 +132,37 @@ namespace tablefs{
     }
 
     void MetaKVIterator::SeekToFirst() {
-        iter = dentry.begin();
+        //iter = dentry.begin();
+        cursor = 0;
     }
 
     void MetaKVIterator::SeekToLast() {
-        iter = dentry.end();
+        //iter = dentry.end();
+        cursor = dentry.size() - 1;
     }
 
     void MetaKVIterator::Next() {
-        iter++;
+        //iter++;
+        cursor++;
     }
 
     void MetaKVIterator::Prev() {
-        iter--;
+        //iter--;
+        cursor--;
     }
 
     bool MetaKVIterator::Valid() {
-        return iter != dentry.end();
+        //return iter != dentry.end();
+        return cursor < dentry.size();
     }
 
     leveldb::Slice MetaKVIterator::key() const {
-        return leveldb::Slice(iter->key.data(), iter->key.size());
+        //return leveldb::Slice(iter->key.data(), iter->key.size());
+        return leveldb::Slice(dentry[cursor].key.data(), dentry[cursor].key.size());
     }
 
     leveldb::Slice MetaKVIterator::value() const {
-        return leveldb::Slice(iter->value.data(), iter->value.size());
+        //return leveldb::Slice(iter->value.data(), iter->value.size());
+        return leveldb::Slice(dentry[cursor].value.data(), dentry[cursor].value.size());
     }
 }

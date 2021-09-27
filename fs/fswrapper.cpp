@@ -336,6 +336,7 @@ void TableFSWrapper::ReleaseFileDescriptor(int fd) {
 }
 
 int TableFSTestWrapper::Mknod(const char* path, mode_t mode, dev_t dev) {
+    printf("mknod\n");
   struct stat statbuf;
   leveldb::Slice key(path, strlen(path));
   int ret = Stat(path, &statbuf);

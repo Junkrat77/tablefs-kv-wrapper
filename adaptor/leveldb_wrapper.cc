@@ -16,7 +16,7 @@ namespace tablefs{
         assert(db_ == nullptr);
         int F_cache_size = p_.getPropertyInt("leveldb.cache.size", 16<<20);
         cache_ = (F_cache_size >= 0) ? leveldb::NewLRUCache(F_cache_size) : NULL;
-        db_name = p_.getProperty("leveldb.db", "/tmp/db");
+        db_name = p_.getProperty("leveldb.db", "/mnt/pmem/db");
         Options options;
         options.create_if_missing =
                 p_.getPropertyBool("leveldb.create.if.missing.db", true);

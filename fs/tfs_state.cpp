@@ -21,7 +21,7 @@ int FileSystemState::Setup(Properties& prop) {
   char* ret;
   ret = realpath(prop.getProperty("metadir").c_str(), resolved_path);
   metadir_ = std::string(resolved_path);
-  ret = realpath(prop.getProperty("datadir").c_str(), resolved_path);
+  ret = realpath(prop.getProperty("datadir", "/mnt/pmem").c_str(), resolved_path);
   datadir_ = std::string(resolved_path);
   ret = realpath(prop.getProperty("mountdir").c_str(), resolved_path);
   mountdir_= std::string(resolved_path);
@@ -42,6 +42,7 @@ int FileSystemState::Setup(Properties& prop) {
 
   //metadb = new LeveldbWrapper();
   //metadb = new uTreeWrapper();
+  //metadb = new RocksdbWrapper();
   metadb = new MetaKVWrapper();
   metadb->SetProperties(prop_);
   metadb->SetLogging(logs);
