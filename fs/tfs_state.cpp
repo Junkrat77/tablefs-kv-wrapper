@@ -2,9 +2,23 @@
 
 #include "fs/tfs_state.h"
 #include "adaptor/leveldb_wrapper.h"
+
+#ifdef UTREE
 #include "adaptor/utree_wrapper.h"
+#endif
+
+#ifdef ROCKSDB
 #include "adaptor/rocksdb_wrapper.h"
+#endif
+
+#ifdef METAKV
 #include "adaptor/metakv_wrapper.h"
+#endif
+
+#ifdef HIKV
+#include "adaptor/hikv_adaptor.h"
+#endif
+//#include "adaptor/hikv_adaptor.h"
 
 namespace tablefs {
 
@@ -21,7 +35,7 @@ int FileSystemState::Setup(Properties& prop) {
   char* ret;
   ret = realpath(prop.getProperty("metadir").c_str(), resolved_path);
   metadir_ = std::string(resolved_path);
-  ret = realpath(prop.getProperty("datadir", "/mnt/pmem").c_str(), resolved_path);
+  ret = realpath(prop.getProperty("datadir", "/mnt/pmem/tablefs").c_str(), resolved_path);
   datadir_ = std::string(resolved_path);
   ret = realpath(prop.getProperty("mountdir").c_str(), resolved_path);
   mountdir_= std::string(resolved_path);
@@ -41,17 +55,18 @@ int FileSystemState::Setup(Properties& prop) {
   prop_.setProperty("leveldb.create.if.missing.db", "true");
 
   //metadb = new LeveldbWrapper();
-  //metadb = new uTreeWrapper();
+  metadb = new uTreeWrapper();
   //metadb = new RocksdbWrapper();
-  metadb = new MetaKVWrapper();
+  //metadb = new MetaKVWrapper();
+  //metadb = new HikvWrapper();
   metadb->SetProperties(prop_);
   metadb->SetLogging(logs);
-  if (metadb->Init() < 0) {
+  /*if (metadb->Init() < 0) {
     printf("failed to open metadb %s\n", prop_.getProperty("leveldb.db").c_str());
     return -1;
   } else {
     printf("open metadb successfully %s\n", metadir_.c_str());
-  }
+  }*/
 
   logs->LogMsg("Initialized two databases.\n");
 

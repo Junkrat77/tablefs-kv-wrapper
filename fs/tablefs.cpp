@@ -444,7 +444,16 @@ void* TableFS::Init(struct fuse_conn_info *conn) {
   } else {
     flag_fuse_enabled = false;
   }
+
   metadb = state_->GetMetaDB();
+
+    if (metadb->Init() < 0) {
+        //printf("failed to open metadb %s\n", state_.prop_.getProperty("leveldb.db").c_str());
+        return nullptr;
+    } else {
+        //printf("open metadb successfully %s\n", metadir_.c_str());
+    }
+
   if (state_->IsEmpty()) {
     state_->GetLog()->LogMsg("TableFS create root inode.\n");
     tfs_meta_key_t key;
