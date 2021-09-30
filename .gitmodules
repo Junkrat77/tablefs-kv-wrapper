@@ -1,6 +1,3 @@
-[submodule "kv/utree"]
-	path = kv/utree
-	url = https://github.com.cnpmjs.org/GlitterIsMe/nvm-datastructure.git
 [submodule "kv/pmem-rocksdb"]
 	path = kv/pmem-rocksdb
 	url = https://github.com/GlitterIsMe/pmem-rocksdb.git
@@ -9,3 +6,11 @@
 	path = kv/metakv
 	url = https://github.com/HUSTERGS/MetaKV.git
 	branch = zyw-new-layout
+[submodule "kv/hikv"]
+	path = kv/hikv
+	url = https://github.com/GlitterIsMe/open_hikv.git
+	branch = developing
+[submodule "kv/utreedb"]
+	path = kv/utreedb
+	url = https://github.com/GlitterIsMe/nvm-datastructure.git
+	branch = with-ff

@@ -159,4 +159,5 @@ int main(int argc, char *argv[])
   fuse_stat = fuse_main(fuse_argc, fuse_argv, &tablefs_operations, tablefs_data);
 
   return fuse_stat;
+    //pthread_exit(&fuse_stat);
 }

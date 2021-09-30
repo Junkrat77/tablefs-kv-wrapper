@@ -20,7 +20,7 @@ namespace tablefs {
         assert(db_ == nullptr);
         int F_cache_size = p_.getPropertyInt("leveldb.cache.size", 16 << 20);
         cache_ = (F_cache_size >= 0) ? rocksdb::NewLRUCache(F_cache_size) : NULL;
-        db_name = p_.getProperty("leveldb.db", "/mnt/pmem/tablefs-meta/rocksdb");
+        db_name = p_.getProperty("leveldb.db", "/mnt/pmem/rocksdb");
 
         rocksdb::Options options;
         options.create_if_missing =
@@ -48,7 +48,7 @@ namespace tablefs {
 
         // DCPMM
         options.dcpmm_kvs_enable = true;
-        options.dcpmm_kvs_mmapped_file_fullpath = "/mnt/pmem/tablefs-meta/pmem-rocksdb";
+        options.dcpmm_kvs_mmapped_file_fullpath = "/mnt/pmem/rocksdb";
         options.dcpmm_kvs_mmapped_file_size = 40UL * 1024 * 1024 * 1024;
         options.recycle_dcpmm_sst = true;
         options.env = rocksdb::NewDCPMMEnv(rocksdb::DCPMMEnvOptions());

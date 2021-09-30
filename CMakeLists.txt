@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FUSE REQUIRED fuse)
 pkg_check_modules(LIBPMEM REQUIRED libpmem)
+pkg_check_modules(LIBPMEMOBJ REQUIRED libpmemobj)
 
 add_subdirectory(lib/leveldb)
 
@@ -16,8 +17,9 @@ option(BUILD_BENCH "build tablefs bench" OFF)
 option(BUILD_TEST "build fs_test" ON)
 
 option(WITH_UTREE "build tablefs with utree" ON)
-option(WITH_ROCKSDB "build tablefs with rocksdb" ON)
-option(WITH_METAKV "build tablefs with metakv" ON)
+option(WITH_ROCKSDB "build tablefs with rocksdb" OFF)
+option(WITH_METAKV "build tablefs with metakv" OFF)
+option(WITH_HIKV "build tablefs with hikv" OFF)
 
 link_libraries(${LIBPMEM_LIBRARIES})
 include_directories(${LIBPMEM_INCLUDE_DIRS})
@@ -41,12 +43,6 @@ target_sources(tablefs_lib PRIVATE
         "adaptor/statistics.h"
         "adaptor/leveldb_wrapper.cc"
         "adaptor/leveldb_wrapper.h"
-        "adaptor/utree_wrapper.cc"
-        "adaptor/utree_wrapper.h"
-        "adaptor/rocksdb_wrapper.cc"
-        "adaptor/rocksdb_wrapper.h"
-        "adaptor/metakv_wrapper.cc"
-        "adaptor/metakv_wrapper.h"
 
         "fs/dcache.cpp"
         "fs/dcache.h"
@@ -65,12 +61,25 @@ target_sources(tablefs_lib PRIVATE
 
 target_include_directories(tablefs_lib PUBLIC ${FUSE_INCLUDE_DIRS} include lib/leveldb lib/leveldb/include lib/leveldb/port .)
 if (WITH_UTREE)
+    message("Define uTree")
+    add_definitions(-DUSE_PMDK)
+    add_definitions(-DUTREE)
+    target_sources(tablefs_lib PUBLIC
+            "adaptor/utree_wrapper.cc"
+            "adaptor/utree_wrapper.h"
+            )
     add_subdirectory(kv/utree/singleThread/uTree)
-    target_include_directories(tablefs_lib PUBLIC kv/utree/singleThread/uTree)
-    target_link_libraries(tablefs_lib utree)
+    target_include_directories(tablefs_lib PUBLIC kv/utree/singleThread/uTree $LIBPMEMOBJ_INCLUDE_DIRS})
+    target_link_libraries(tablefs_lib utree ${LIBPMEMOBJ_LIBRARIES})
 endif ()
 
 if (WITH_ROCKSDB)
+    message("Define RocksDB")
+    add_definitions(-DROCKSDB)
+    target_sources(tablefs_lib PUBLIC
+            "adaptor/rocksdb_wrapper.cc"
+            "adaptor/rocksdb_wrapper.h"
+            )
     add_definitions(-DWITH_DCPMM)
     add_definitions(-DON_DCPMM)
     add_subdirectory(kv/pmem-rocksdb)
@@ -78,7 +87,25 @@ if (WITH_ROCKSDB)
     target_link_libraries(tablefs_lib rocksdb)
 endif ()
 
+if (WITH_HIKV)
+    message("Define HiKV")
+    add_definitions(-DHIKV)
+    target_sources(tablefs_lib PUBLIC
+            "adaptor/hikv_adaptor.cc"
+            "adaptor/hikv_adaptor.h"
+            )
+    add_subdirectory(kv/hikv)
+    target_include_directories(tablefs_lib PUBLIC kv/hikv)
+    target_link_libraries(tablefs_lib open_hikv)
+endif ()
+
 if (WITH_METAKV)
+    message("Define MetaKV")
+    add_definitions(-DMETAKV)
+    target_sources(tablefs_lib PUBLIC
+            "adaptor/metakv_wrapper.cc"
+            "adaptor/metakv_wrapper.h"
+            )
     find_library(CLHT_LIBRARIES NAMES clht PATHS kv/metakv/src/CLHT REQUIRED)
     find_library(SSMEM_LIBRARIES NAMES ssmem PATHS kv/metakv/src/CLHT REQUIRED)
     add_subdirectory(kv/metakv)
@@ -110,8 +137,6 @@ if (BUILD_TEST)
             "adaptor/utree_wrapper_test.cc"
             "adaptor/utree_wrapper.cc"
             "adaptor/utree_wrapper.h"
-            "adaptor/rocksdb_wrapper.cc"
-            "adaptor/rocksdb_wrapper.h"
             "adaptor/kv_wrapper.cc"
             "adaptor/kv_wrapper.h"
             "adaptor/statistics.cc"

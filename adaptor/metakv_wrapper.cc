@@ -9,11 +9,11 @@ namespace tablefs{
 
     int MetaKVWrapper::Init() {
         Options options;
-        options.cceh_file_size = 100UL * 1024 * 1024 * 1024;
-        options.data_file_size = 80UL * 1024 * 1024 * 1024;
+        options.cceh_file_size = 60UL * 1024 * 1024 * 1024;
+        options.data_file_size = 60UL * 1024 * 1024 * 1024;
         db_ = MetaDB{};
 
-        path_ = p_.getProperty("leveldb.db", "/mnt/pmem/tablefs-metakv");
+        path_ = p_.getProperty("leveldb.db", "/mnt/pmem/metakv");
         db_.Open(options, path_);
 
         logon = p_.getPropertyBool("leveldb.logon", false);
@@ -106,6 +106,8 @@ namespace tablefs{
     int MetaKVWrapper::Write(leveldb::WriteBatch &batch) {
         MetaDBInserter inserter(&db_);
         batch.Iterate(&inserter);
+
+        return 1;
     }
 
     int MetaKVWrapper::Sync() {
