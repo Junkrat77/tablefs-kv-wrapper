@@ -62,15 +62,15 @@ target_sources(tablefs_lib PRIVATE
 target_include_directories(tablefs_lib PUBLIC ${FUSE_INCLUDE_DIRS} include lib/leveldb lib/leveldb/include lib/leveldb/port .)
 if (WITH_UTREE)
     message("Define uTree")
-    add_definitions(-DUSE_PMDK)
     add_definitions(-DUTREE)
+    add_definitions(-DUSE_PMDK)
     target_sources(tablefs_lib PUBLIC
             "adaptor/utree_wrapper.cc"
             "adaptor/utree_wrapper.h"
             )
-    add_subdirectory(kv/utree/singleThread/uTree)
-    target_include_directories(tablefs_lib PUBLIC kv/utree/singleThread/uTree $LIBPMEMOBJ_INCLUDE_DIRS})
-    target_link_libraries(tablefs_lib utree ${LIBPMEMOBJ_LIBRARIES})
+    add_subdirectory(kv/utreedb)
+    target_include_directories(tablefs_lib PUBLIC kv/utreedb/multiThread $LIBPMEMOBJ_INCLUDE_DIRS})
+    target_link_libraries(tablefs_lib treedb ${LIBPMEMOBJ_LIBRARIES})
 endif ()
 
 if (WITH_ROCKSDB)

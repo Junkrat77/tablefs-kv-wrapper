@@ -5,8 +5,10 @@
 #ifndef TABLEFS_UTREE_WRAPPER_H
 #define TABLEFS_UTREE_WRAPPER_H
 
+#include <memory>
+
 #include "kv_wrapper.h"
-#include "kv/utree/singleThread/uTree/utree.h"
+#include "tree_db.h"
 
 namespace tablefs {
     class uTreeWrapper: public KvWrapper {
@@ -48,12 +50,12 @@ namespace tablefs {
         Logging* logs_;
         Properties p_;
 
-        btree* utree_;
+        std::unique_ptr<treedb::TreeDB> db_;
     };
 
     class uTreeIterator: public KvIterator {
     public:
-        explicit uTreeIterator(btree* utree);
+        explicit uTreeIterator(treedb::TreeDB* db);
         ~uTreeIterator() override =default;
 
         bool Valid() override;
@@ -72,11 +74,10 @@ namespace tablefs {
         leveldb::Slice key() const override;
 
         leveldb::Slice value() const override;
-
     private:
-        btree* utree_ {nullptr};
-        list_node_t* node_ {nullptr};
-        bool init {false};
+        treedb::TreeDB* db_;
+        std::vector<treedb::KVPair> dentry_;
+        size_t cursor_{0};
     };
 }
 
