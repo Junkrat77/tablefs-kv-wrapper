@@ -16,10 +16,11 @@ add_definitions(-DLEVELDB_PLATFORM_POSIX)
 option(BUILD_BENCH "build tablefs bench" OFF)
 option(BUILD_TEST "build fs_test" ON)
 
-option(WITH_UTREE "build tablefs with utree" ON)
+option(WITH_UTREE "build tablefs with utree" OFF)
 option(WITH_ROCKSDB "build tablefs with rocksdb" OFF)
 option(WITH_METAKV "build tablefs with metakv" OFF)
 option(WITH_HIKV "build tablefs with hikv" OFF)
+option(WITH_ROART "build tablefs with roart" ON)
 
 link_libraries(${LIBPMEM_LIBRARIES})
 include_directories(${LIBPMEM_INCLUDE_DIRS})
@@ -111,6 +112,30 @@ if (WITH_METAKV)
     add_subdirectory(kv/metakv)
     target_include_directories(tablefs_lib PUBLIC kv/metakv)
     target_link_libraries(tablefs_lib metakv)
+endif ()
+
+if (WITH_ROART)
+    message("Define ROART")
+    add_definitions(-DROART)
+    add_definitions(-DCLWB)
+    add_definitions(-DVARIABLE_LENGTH)
+    add_definitions(-DUSE_PMDK)
+    add_definitions(-DACMA) # for fastfair and skiplist with dcmm
+    add_definitions(-DFF_GC) # ff_gc
+    add_definitions(-DRECLAIM_MEMORY)
+    add_definitions(-DKEY_INLINE)
+    add_definitions(-DINSTANT_RESTART)
+
+    add_definitions(-DLEAF_ARRAY)
+    add_definitions(-DFIND_FIRST)
+    add_definitions(-DTRANSACTIONAL)
+    target_sources(tablefs_lib PUBLIC
+            "adaptor/roart_wrapper.cc"
+            "adaptor/roart_wrapper.h"
+            )
+    add_subdirectory(kv/roart)
+    target_include_directories(tablefs_lib PUBLIC kv/roart/ART kv/roart/nvm_mgr kv/roart/benchmark)
+    target_link_libraries(tablefs_lib Indexes)
 endif ()
 
 target_link_libraries(tablefs_lib leveldb ${FUSE_LIBRARIES})

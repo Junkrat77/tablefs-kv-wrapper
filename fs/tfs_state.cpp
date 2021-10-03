@@ -18,7 +18,10 @@
 #ifdef HIKV
 #include "adaptor/hikv_adaptor.h"
 #endif
-//#include "adaptor/hikv_adaptor.h"
+
+#ifdef ROART
+#include "adaptor/roart_wrapper.h"
+#endif
 
 namespace tablefs {
 
@@ -55,10 +58,12 @@ int FileSystemState::Setup(Properties& prop) {
   prop_.setProperty("leveldb.create.if.missing.db", "true");
 
   //metadb = new LeveldbWrapper();
-  metadb = new uTreeWrapper();
+  //metadb = new uTreeWrapper();
   //metadb = new RocksdbWrapper();
   //metadb = new MetaKVWrapper();
   //metadb = new HikvWrapper();
+  metadb = new RoartWrappr();
+
   metadb->SetProperties(prop_);
   metadb->SetLogging(logs);
   /*if (metadb->Init() < 0) {

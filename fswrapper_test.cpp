@@ -44,7 +44,6 @@ void TestFSWrapper(Properties &prop) {
     content[i] = rand() % 26 + 97;
   int fd;
   fs->Listdir("/");
-    printf("finished first ls\n");
   for (int i = 0; i < 10000; ++i) {
     sprintf(fpath, "/%08x\0", i);
     fs->Mknod(fpath, S_IRWXU | S_IRWXG | S_IRWXO, 0);

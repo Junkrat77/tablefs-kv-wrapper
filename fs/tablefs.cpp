@@ -523,7 +523,7 @@ int TableFS::OpenDiskFile(const tfs_inode_header* iheader, int flags) {
   GetDiskFilePath(fpath, iheader->fstat.st_ino);
   int fd = open(fpath, flags | O_CREAT, iheader->fstat.st_mode);
     if (fd == -1) {
-        fprintf(stderr, "%s\n", strerror(errno));
+        fprintf(stderr, "OpenDiskFile: %s\n", strerror(errno));
         exit(-1);
     }
 #ifdef  TABLEFS_DEBUG

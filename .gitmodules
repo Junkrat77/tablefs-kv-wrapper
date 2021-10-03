@@ -14,3 +14,7 @@
 	path = kv/utreedb
 	url = https://github.com/GlitterIsMe/nvm-datastructure.git
 	branch = with-ff
+[submodule "kv/roart"]
+	path = kv/roart
+	url = https://github.com/Junkrat77/ROART.git
+	branch = developing
