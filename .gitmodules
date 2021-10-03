@@ -16,5 +16,5 @@
 	branch = with-ff
 [submodule "kv/roart"]
 	path = kv/roart
-	url = https://github.com/Junkrat77/ROART.git
+	url = https://github.com/GlitterIsMe/ROART.git
 	branch = developing
