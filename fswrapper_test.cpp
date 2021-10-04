@@ -32,53 +32,54 @@
 using namespace tablefs;
 
 void TestFSWrapper(Properties &prop) {
-  FileSystemWrapper *fs;
-  fs = new TableFSWrapper();
-  ASSERT(fs->Setup(prop) == 0);
+    FileSystemWrapper *fs;
+    fs = new TableFSWrapper();
+    ASSERT(fs->Setup(prop) == 0);
 
-  char fpath[128] = "/00000000";
+    char fpath[128] = "/00000000";
 
-  int content_size = 128;
-  char *content = new char[content_size];
-  for (int i = 0; i < content_size; ++i)
-    content[i] = rand() % 26 + 97;
-  int fd;
-  fs->Listdir("/");
-  for (int i = 0; i < 10000; ++i) {
-    sprintf(fpath, "/%08x\0", i);
-    fs->Mknod(fpath, S_IRWXU | S_IRWXG | S_IRWXO, 0);
-    fd = fs->Open(fpath, O_WRONLY);
-      if (fd == -1) {
-          printf("open failed\n");
-      }
-    fs->Write(fd, content, content_size);
+    int content_size = 128;
+    char *content = new char[content_size];
+    for (int i = 0; i < content_size; ++i)
+        content[i] = rand() % 26 + 97;
+    int fd;
+    printf("ls result = [%d]\n", fs->Listdir("/"));
+    //printf("finish first ls\n\n");
+    for (int i = 0; i < 100; ++i) {
+        sprintf(fpath, "/%08x\0", i);
+        fs->Mknod(fpath, S_IRWXU | S_IRWXG | S_IRWXO, 0);
+        fd = fs->Open(fpath, O_WRONLY);
+        if (fd == -1) {
+            printf("open failed\n");
+        }
+        fs->Write(fd, content, content_size);
+        fs->Close(fd);
+        //if (i % 1000 == 0) {
+        //    printf("finished %d\r", i);
+        //}
+    }
+    printf("ls result = [%d]\n", fs->Listdir("/"));
+
+    delete fs;
+
+    /*fs = new TableFSWrapper();
+    ASSERT(fs->Setup(prop) == 0);
+
+    fd = fs->Open(fpath, O_RDONLY);
+    fs->Read(fd, content, content_size);
     fs->Close(fd);
-      if (i % 500 == 0) {
-          printf("finished %d\r", i);
-      }
-  }
-  fs->Listdir("/");
 
-  delete fs;
-
-  /*fs = new TableFSWrapper();
-  ASSERT(fs->Setup(prop) == 0);
-
-  fd = fs->Open(fpath, O_RDONLY);
-  fs->Read(fd, content, content_size);
-  fs->Close(fd);
-
-  delete fs;*/
+    delete fs;*/
 }
 
 int main(int argc, char *argv[]) {
-  Properties prop;
-  prop.parseOpts(argc, argv);
-  std::string config_filename = prop.getProperty("configfile");
-  printf("%s\n", config_filename.c_str());
-  if (config_filename.size() > 0) {
-    prop.load(config_filename);
-  }
-  TestFSWrapper(prop);
-  return 0;
+    Properties prop;
+    prop.parseOpts(argc, argv);
+    std::string config_filename = prop.getProperty("configfile");
+    printf("%s\n", config_filename.c_str());
+    if (config_filename.size() > 0) {
+        prop.load(config_filename);
+    }
+    TestFSWrapper(prop);
+    return 0;
 }

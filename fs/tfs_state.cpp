@@ -23,6 +23,10 @@
 #include "adaptor/roart_wrapper.h"
 #endif
 
+#ifdef TLHASH
+#include "adaptor/tlhash_wrapper.h"
+#endif
+
 namespace tablefs {
 
 FileSystemState::FileSystemState() :
@@ -62,7 +66,8 @@ int FileSystemState::Setup(Properties& prop) {
   //metadb = new RocksdbWrapper();
   //metadb = new MetaKVWrapper();
   //metadb = new HikvWrapper();
-  metadb = new RoartWrappr();
+  //metadb = new RoartWrappr();
+    metadb = new TlhashWrapper();
 
   metadb->SetProperties(prop_);
   metadb->SetLogging(logs);

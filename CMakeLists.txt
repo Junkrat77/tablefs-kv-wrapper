@@ -20,7 +20,8 @@ option(WITH_UTREE "build tablefs with utree" OFF)
 option(WITH_ROCKSDB "build tablefs with rocksdb" OFF)
 option(WITH_METAKV "build tablefs with metakv" OFF)
 option(WITH_HIKV "build tablefs with hikv" OFF)
-option(WITH_ROART "build tablefs with roart" ON)
+option(WITH_ROART "build tablefs with roart" OFF)
+option(WITH_TLHASH "build tablefs with two level hash" ON)
 
 link_libraries(${LIBPMEM_LIBRARIES})
 include_directories(${LIBPMEM_INCLUDE_DIRS})
@@ -136,6 +137,29 @@ if (WITH_ROART)
     add_subdirectory(kv/roart)
     target_include_directories(tablefs_lib PUBLIC kv/roart/ART kv/roart/nvm_mgr kv/roart/benchmark)
     target_link_libraries(tablefs_lib Indexes)
+endif ()
+
+if (WITH_TLHASH)
+    message("Define Two Level Hash")
+    add_definitions(-DTLHASH)
+    target_sources(tablefs_lib PUBLIC
+            "adaptor/tlhash_wrapper.cc"
+            "adaptor/tlhash_wrapper.h"
+            "kv/tlhash/src/CCEH.cpp"
+            "kv/tlhash/src/global_log.cpp"
+            "kv/tlhash/src/hash.cpp"
+            "kv/tlhash/src/HybridHash.cpp"
+            )
+    link_libraries(${LIBPMEMOBJ_LIBRARIES})
+    include_directories(${LIBPMEMOBJ_INCLUDE_DIRS})
+    #find_library(TLHASH_LIBRARIES NAMES metadb PATHS kv/tlhash/ REQUIRED)
+    find_library(CLHT_LIBRARIES NAMES clht PATHS kv/tlhash/lib REQUIRED)
+    find_library(SSMEM_LIBRARIES NAMES ssmem PATHS kv/tlhash/lib REQUIRED)
+    target_include_directories(tablefs_lib PUBLIC kv/tlhash/include kv/tlhash/src)
+    message("Find two level hash lib ${TLHASH_LIBRARIES}")
+    target_link_libraries(tablefs_lib
+            #${TLHASH_LIBRARIES}
+            ${CLHT_LIBRARIES} ${SSMEM_LIBRARIES})
 endif ()
 
 target_link_libraries(tablefs_lib leveldb ${FUSE_LIBRARIES})
