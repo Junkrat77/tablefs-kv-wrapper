@@ -62,12 +62,29 @@ int FileSystemState::Setup(Properties& prop) {
   prop_.setProperty("leveldb.create.if.missing.db", "true");
 
   //metadb = new LeveldbWrapper();
-  //metadb = new uTreeWrapper();
-  //metadb = new RocksdbWrapper();
-  //metadb = new MetaKVWrapper();
-  //metadb = new HikvWrapper();
-  //metadb = new RoartWrappr();
+#ifdef UTREE
+  metadb = new uTreeWrapper();
+#endif
+
+#ifdef ROCKSDB
+  metadb = new RocksdbWrapper();
+#endif
+
+#ifdef METAKV
+  metadb = new MetaKVWrapper();
+#endif
+
+#ifdef HIKV
+  metadb = new HikvWrapper();
+#endif
+
+#ifdef ROART
+  metadb = new RoartWrappr();
+#endif
+
+#ifdef TLHASH
     metadb = new TlhashWrapper();
+#endif
 
   metadb->SetProperties(prop_);
   metadb->SetLogging(logs);
