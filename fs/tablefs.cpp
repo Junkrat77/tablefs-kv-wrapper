@@ -1042,7 +1042,11 @@ int TableFS::ReadDir(const char *path, void *buf, fuse_fill_dir_t filler,
       tfs_meta_key_t *tmp = (tfs_meta_key_t*)(iter->key().data());
       scan_log << tmp->inode_id << "," << tmp->hash_id << "\n";
 #endif
+#ifdef METAKV
+    const char* name_buffer = iter->value().data();
+#else
     const char* name_buffer = iter->value().data() + TFS_INODE_HEADER_SIZE;
+#endif
     if (name_buffer[0] == '\0') {
         continue;
     }

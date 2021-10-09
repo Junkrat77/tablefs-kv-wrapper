@@ -2,25 +2,15 @@
 // Created by zyw on 2021/9/26.
 //
 
+#include <sys/stat.h>
+#include <iostream>
 #include "metakv_wrapper.h"
-#include "src/Options.h"
+#include "fs/tfs_inode.h"
 
 namespace tablefs{
 
     int MetaKVWrapper::Init() {
-        Options options;
-        options.cceh_file_size = 60UL * 1024 * 1024 * 1024;
-        options.data_file_size = 60UL * 1024 * 1024 * 1024;
-        db_ = MetaDB{};
-
-        path_ = p_.getProperty("leveldb.db", "/mnt/pmem/metakv");
-        db_.Open(options, path_);
-
-        logon = p_.getPropertyBool("leveldb.logon", false);
-        sync_time_limit = p_.getPropertyInt("leveldb.sync.time.limit", 5);
-        sync_size_limit = p_.getPropertyInt("leveldb.sync.size.limit", -1);
-        last_sync_time = time(nullptr);
-        async_data_size = 0;
+        
         return 1;
     }
 
@@ -29,84 +19,59 @@ namespace tablefs{
     }
 
     int MetaKVWrapper::Put(const leveldb::Slice &key, const leveldb::Slice &value) {
-        if (logon) {
-            if (logs_ != nullptr) {
-                const int *data = (const int *) key.ToString().data();
-                logs_->LogMsg("Put %d %x\n", data[0], data[1]);
-            }
-        }
-        tfsKey metakv_key(key);
-        tfsValue metakv_value(value.ToString());
-
-        bool res = db_.Put(metakv_key, metakv_value);
-        if (res) {
-            return 0;
-        } else {
-            if (logon) {
-                if (logs_ != NULL) {
-                    logs_->LogMsg("Put Error\n");
-                }
-            }
-            return -1;
-        }
+        uint64_t* pinode_hash_fname = (uint64_t*)key.ToString().c_str();
+        char* stat_fname = (char*)value.ToString().c_str();
+        uint64_t pinode = *pinode_hash_fname;
+        uint64_t hash_fname = *(pinode_hash_fname + 1);
+        char* fname = stat_fname + TFS_INODE_HEADER_SIZE;
+        tfs_inode_header* header = reinterpret_cast<tfs_inode_header*>(stat_fname);
+        uint64_t inode = header->fstat.st_ino;
+        struct stat* fstat = &header->fstat;
+        return MetaKVPut(&db_, pinode, hash_fname, fname, inode, fstat);
     }
 
     int MetaKVWrapper::Get(const leveldb::Slice &key, std::string &result) {
-        tfsKey metakv_key(key);
-        tfsValue metakv_value;
-        bool res = db_.Get(metakv_key, metakv_value);
-        if (logon) {
-            if (logs_ != NULL) {
-                const int *data = (const int *) key.ToString().data();
-                logs_->LogMsg("read %d %x\n", data[0], data[1]);
-            }
-        }
-        Slice val;
-        metakv_value.GetValue(&val);
-        result = val.ToString();
-        if (!res) {
-            return 0;
-        } else {
-            return 1;
-        }
+        uint64_t* pinode_hash_fname = (uint64_t*)key.ToString().c_str();
+        uint64_t pinode = *pinode_hash_fname;
+        uint64_t hash_fname = *(pinode_hash_fname + 1);
+        char *value = NULL;
+        int res = MetaKVGet(&db_, pinode, hash_fname, &value);
+        if (0 == res) return 0;
+        result = std::string(value);
+        if (value != NULL) free(value);
+        return 1;
+
+        // 对blob怎么处理？
+
     }
 
     int MetaKVWrapper::Delete(const leveldb::Slice &key) {
-        if (logon) {
-            if (logs_ != NULL) {
-                const int *data = (const int *) key.ToString().data();
-                logs_->LogMsg("Delete %d %x\n", data[0], data[1]);
-            }
-        }
-        tfsKey metakv_key(key);
-        db_.Delete(metakv_key);
-        return 0;
+        uint64_t* pinode_hash_fname = (uint64_t*)key.ToString().c_str();
+        uint64_t pinode = *pinode_hash_fname;
+        uint64_t hash_fname = *(pinode_hash_fname + 1);
+        return MetaKVDelete(&db_, pinode, hash_fname);
     }
 
     class MetaDBInserter : public leveldb::WriteBatch::Handler {
     public:
-        MetaDBInserter(MetaDB *db) : db_(db) {};
+        MetaDBInserter(MetaKVWrapper *wrapper) : _wrapper(wrapper) {};
 
         ~MetaDBInserter() {};
 
         void Put(const leveldb::Slice &key, const leveldb::Slice &value) override {
-            tfsKey metakv_key(key);
-            tfsValue metakv_value(value.ToString());
-            db_->Put(metakv_key, metakv_value);
+            this->Put(key, value);
         };
 
         void Delete(const leveldb::Slice &key) override {
-            tfsKey metakv_key(key);
-            db_->Delete(metakv_key);
+            this->Delete(key);
         };
     private:
-        MetaDB* db_;
+        MetaKVWrapper *_wrapper;
     };
 
     int MetaKVWrapper::Write(leveldb::WriteBatch &batch) {
-        MetaDBInserter inserter(&db_);
+        MetaDBInserter inserter(this);
         batch.Iterate(&inserter);
-
         return 1;
     }
 
@@ -127,44 +92,51 @@ namespace tablefs{
     }
 
     void MetaKVIterator::Seek(const leveldb::Slice &target) {
-        tfsKey metakv_key(target);
-        Slice prefix;
-        metakv_key.GetPrefix(&prefix);
-        db_->Scan(prefix, dentry);
+        uint64_t pinode = *(uint64_t*)(target.ToString().c_str());
+        printf("Readdir pinode: %lu\n", pinode);
+        MetaKVScan(db_, pinode, &scan_result);
+        result_len = *(uint64_t*)scan_result;
     }
 
     void MetaKVIterator::SeekToFirst() {
         //iter = dentry.begin();
-        cursor = 0;
+        cursor += sizeof(result_len); 
     }
 
     void MetaKVIterator::SeekToLast() {
         //iter = dentry.end();
-        cursor = dentry.size() - 1;
+        std::cout << "wo zan shi hai mei xiang hao zen me shi xian zhe ge function!\n" << std::endl;
+        assert(0);
     }
 
     void MetaKVIterator::Next() {
-        //iter++;
-        cursor++;
+        uint64_t fname_len = (*(uint64_t*)cursor) - sizeof(uint64_t); 
+        cursor += fname_len + header_len;
     }
 
     void MetaKVIterator::Prev() {
-        //iter--;
-        cursor--;
+        std::cout << "zhe ge function ye mei you shi xian!\n" << std::endl;
+        assert(0);
     }
 
     bool MetaKVIterator::Valid() {
         //return iter != dentry.end();
-        return cursor < dentry.size();
+        return cursor != (result_len + scan_result);
     }
 
     leveldb::Slice MetaKVIterator::key() const {
         //return leveldb::Slice(iter->key.data(), iter->key.size());
-        return leveldb::Slice(dentry[cursor].key.data(), dentry[cursor].key.size());
+        uint64_t key_len = 2 * sizeof(uint64_t);
+        char* key = cursor + sizeof(uint64_t);
+
+        return leveldb::Slice(key, key_len);
     }
 
     leveldb::Slice MetaKVIterator::value() const {
         //return leveldb::Slice(iter->value.data(), iter->value.size());
-        return leveldb::Slice(dentry[cursor].value.data(), dentry[cursor].value.size());
+        uint64_t fname_len = (*(uint64_t*)cursor) - sizeof(uint64_t); 
+        char* fname = cursor + header_len;
+
+        return leveldb::Slice(fname, fname_len);
     }
 }

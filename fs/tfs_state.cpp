@@ -31,7 +31,6 @@ namespace tablefs {
 
 FileSystemState::FileSystemState() :
   metadb(NULL),  max_inode_num(0), threshold_(0), logs(NULL) {
-
 }
 
 FileSystemState::~FileSystemState() {

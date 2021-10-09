@@ -18,10 +18,10 @@ option(BUILD_TEST "build fs_test" ON)
 
 option(WITH_UTREE "build tablefs with utree" OFF)
 option(WITH_ROCKSDB "build tablefs with rocksdb" OFF)
-option(WITH_METAKV "build tablefs with metakv" OFF)
+option(WITH_METAKV "build tablefs with metakv" ON)
 option(WITH_HIKV "build tablefs with hikv" OFF)
 option(WITH_ROART "build tablefs with roart" OFF)
-option(WITH_TLHASH "build tablefs with two level hash" ON)
+option(WITH_TLHASH "build tablefs with two level hash" OFF)
 
 link_libraries(${LIBPMEM_LIBRARIES})
 include_directories(${LIBPMEM_INCLUDE_DIRS})
@@ -62,6 +62,8 @@ target_sources(tablefs_lib PRIVATE
         )
 
 target_include_directories(tablefs_lib PUBLIC ${FUSE_INCLUDE_DIRS} include lib/leveldb lib/leveldb/include lib/leveldb/port .)
+target_link_libraries(tablefs_lib leveldb ${FUSE_LIBRARIES})
+
 if (WITH_UTREE)
     message("Define uTree")
     add_definitions(-DUTREE)
@@ -108,8 +110,8 @@ if (WITH_METAKV)
             "adaptor/metakv_wrapper.cc"
             "adaptor/metakv_wrapper.h"
             )
-    find_library(CLHT_LIBRARIES NAMES clht PATHS kv/metakv/src/CLHT REQUIRED)
-    find_library(SSMEM_LIBRARIES NAMES ssmem PATHS kv/metakv/src/CLHT REQUIRED)
+#     find_library(CLHT_LIBRARIES NAMES clht PATHS kv/metakv/src/CLHT REQUIRED)
+#     find_library(SSMEM_LIBRARIES NAMES ssmem PATHS kv/metakv/src/CLHT REQUIRED)
     add_subdirectory(kv/metakv)
     target_include_directories(tablefs_lib PUBLIC kv/metakv)
     target_link_libraries(tablefs_lib metakv)
@@ -162,7 +164,6 @@ if (WITH_TLHASH)
             ${CLHT_LIBRARIES} ${SSMEM_LIBRARIES})
 endif ()
 
-target_link_libraries(tablefs_lib leveldb ${FUSE_LIBRARIES})
 
 add_executable(tablefs "tablefs_main.cpp")
 target_link_libraries(tablefs tablefs_lib)
@@ -181,11 +182,13 @@ if (BUILD_BENCH)
 endif ()
 
 if (BUILD_TEST)
-    add_executable(utree_wrapper_test "")
-    target_sources(utree_wrapper_test PUBLIC
-            "adaptor/utree_wrapper_test.cc"
-            "adaptor/utree_wrapper.cc"
-            "adaptor/utree_wrapper.h"
+    add_definitions(-DUSING_VALID)
+    add_executable(metakv_wrapper_test "")
+    target_sources(metakv_wrapper_test PUBLIC
+            "adaptor/metakv_wrapper_test.cc"
+            "adaptor/metakv_wrapper.cc"
+            "adaptor/metakv_wrapper.h"
+
             "adaptor/kv_wrapper.cc"
             "adaptor/kv_wrapper.h"
             "adaptor/statistics.cc"
@@ -193,14 +196,36 @@ if (BUILD_TEST)
             "util/properties.cpp"
             "util/properties.h"
             )
-    target_include_directories(utree_wrapper_test PUBLIC kv/utree/singleThread/uTree lib/leveldb lib/leveldb/include include .)
-    target_link_libraries(utree_wrapper_test utree leveldb ${LIBPMEM_LIBRARIES})
+    target_include_directories(metakv_wrapper_test PUBLIC kv/metakv lib/leveldb lib/leveldb/include include .)
+    target_link_libraries(metakv_wrapper_test metakv leveldb ${LIBPMEM_LIBRARIES})
 
     add_executable(tablefs_test
             "fswrapper_test.cpp"
             )
     target_link_libraries(tablefs_test tablefs_lib)
 endif ()
+
+# if (BUILD_TEST)
+#     add_executable(utree_wrapper_test "")
+#     target_sources(utree_wrapper_test PUBLIC
+#             "adaptor/utree_wrapper_test.cc"
+#             "adaptor/utree_wrapper.cc"
+#             "adaptor/utree_wrapper.h"
+#             "adaptor/kv_wrapper.cc"
+#             "adaptor/kv_wrapper.h"
+#             "adaptor/statistics.cc"
+#             "adaptor/statistics.h"
+#             "util/properties.cpp"
+#             "util/properties.h"
+#             )
+#     target_include_directories(utree_wrapper_test PUBLIC kv/utree/singleThread/uTree lib/leveldb lib/leveldb/include include .)
+#     target_link_libraries(utree_wrapper_test utree leveldb ${LIBPMEM_LIBRARIES})
+
+#     add_executable(tablefs_test
+#             "fswrapper_test.cpp"
+#             )
+#     target_link_libraries(tablefs_test tablefs_lib)
+# endif ()
 
 
 
