@@ -17,7 +17,7 @@ namespace tablefs {
 
 class Logging {
 public:
-  Logging() : logging_filename("/tmp/tmp.log") {}
+  Logging() : logging_filename("/home/TableFS/logging") {}
 
   explicit Logging(const char *path) : logging_filename(path) {}
 

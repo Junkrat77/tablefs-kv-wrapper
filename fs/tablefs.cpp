@@ -30,7 +30,7 @@
 #include "leveldb/write_batch.h"
 #define RECORD_SCAN
 #ifdef RECORD_SCAN
-const std::string scan_file = "/home/zhangyiwen/tablefs-petakv/scan.log";
+const std::string scan_file = "/home/TableFS/scan.log";
 #endif
 
 namespace tablefs {
@@ -462,6 +462,7 @@ void* TableFS::Init(struct fuse_conn_info *conn) {
     lstat(ROOT_INODE_STAT, &statbuf);
     tfs_inode_val_t value = InitInodeValue(ROOT_INODE_ID,
           statbuf.st_mode, statbuf.st_dev, leveldb::Slice("\0"));
+    // printf("MetaKVPut: pinode: %ld hash_fname: %ld fname: %s, inode: %ld\n", key.inode_id, key.hash_id, "\0", ROOT_INODE_ID);
     if (metadb->Put(key.ToSlice(), value.ToSlice()) < 0) {
       state_->GetLog()->LogMsg("TableFS create root directory failed.\n");
     }

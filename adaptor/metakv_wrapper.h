@@ -88,12 +88,12 @@ namespace tablefs {
         // using KVPair = std::pair<std::string, std::string>;
         // std::vector<KVPair> dentry;
         /* result_len 
-        /* value_len + pindo + hash_fname + inode + fname */
+        /* value_len(4) + pindo(8) + hash_fname(8) + inode(8) + fname */
         char* scan_result{NULL};
         uint64_t result_len;
         char* cursor{NULL};
-        MetaDb* db_;
-        uint64_t header_len{32};
+        struct MetaDb* db_;
+        uint64_t fname_header_len{28};
     };
 
 }

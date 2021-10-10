@@ -19,6 +19,7 @@ Logging::~Logging() {
 
 void Logging::Open() {
   if (logging_filename.size() > 0) {
+    printf("Open the log\n");
     logfile = fopen(logging_filename.data(), "w");
   } else {
     logfile = NULL;

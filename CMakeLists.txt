@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(tablefs)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-g")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FUSE REQUIRED fuse)
@@ -12,6 +13,7 @@ add_subdirectory(lib/leveldb)
 
 add_definitions(-D_FILE_OFFSET_BITS=64 )
 add_definitions(-DLEVELDB_PLATFORM_POSIX)
+add_definitions(-DTABLEFS_DEBUG)
 
 option(BUILD_BENCH "build tablefs bench" OFF)
 option(BUILD_TEST "build fs_test" ON)
@@ -73,7 +75,7 @@ if (WITH_UTREE)
             "adaptor/utree_wrapper.h"
             )
     add_subdirectory(kv/utreedb)
-    target_include_directories(tablefs_lib PUBLIC kv/utreedb/multiThread $LIBPMEMOBJ_INCLUDE_DIRS})
+    target_include_directories(tablefs_lib PUBLIC kv/utreedb/multiThread/ $LIBPMEMOBJ_INCLUDE_DIRS})
     target_link_libraries(tablefs_lib treedb ${LIBPMEMOBJ_LIBRARIES})
 endif ()
 
@@ -106,6 +108,8 @@ endif ()
 if (WITH_METAKV)
     message("Define MetaKV")
     add_definitions(-DMETAKV)
+    add_definitions(-DUSING_VALID)
+    add_definitions(-DCCEH_LOCK_BASED)
     target_sources(tablefs_lib PUBLIC
             "adaptor/metakv_wrapper.cc"
             "adaptor/metakv_wrapper.h"
@@ -218,7 +222,7 @@ endif ()
 #             "util/properties.cpp"
 #             "util/properties.h"
 #             )
-#     target_include_directories(utree_wrapper_test PUBLIC kv/utree/singleThread/uTree lib/leveldb lib/leveldb/include include .)
+#     target_include_directories(utree_wrapper_test PUBLIC kv/utree/multiThread/ kv/utree/singleThread/uTree lib/leveldb lib/leveldb/include include .)
 #     target_link_libraries(utree_wrapper_test utree leveldb ${LIBPMEM_LIBRARIES})
 
 #     add_executable(tablefs_test

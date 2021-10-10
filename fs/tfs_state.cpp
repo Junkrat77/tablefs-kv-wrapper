@@ -52,7 +52,8 @@ int FileSystemState::Setup(Properties& prop) {
      exit(1);
   }
 
-  logs = new Logging(prop.getProperty("logfile", ""));
+  // logs = new Logging(prop.getProperty("logfile", ""));
+  logs = new Logging("/home/TableFS/logging");
   logs->SetDefault(logs);
   logs->Open();
 

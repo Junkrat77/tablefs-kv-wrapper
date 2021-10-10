@@ -1,0 +1,8 @@
+build/*
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/c_cpp_properties.json
+run_filebench.sh
+kv/metakv
+README.txt
