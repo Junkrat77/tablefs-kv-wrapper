@@ -17,3 +17,6 @@
 [submodule "kv/metakv"]
 	path = kv/metakv
 	url = git@github.com:Junkrat77/metakv.git
+[submodule "filebench"]
+	path = filebench
+	url = git@github.com:filebench/filebench.git
