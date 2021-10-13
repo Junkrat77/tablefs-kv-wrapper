@@ -1,13 +1,14 @@
 version: "3"
 
 services:
-  env:
+  gq:
     build: .
-
     volumes:
       - .:/home/tablefs
-      - /Users/Zhangyiwen/Documents/dockerfile:/mnt
+      - /home/ganquan/pmem:/mnt/pmem
     ports:
-      - "45678:22"
+      - "34567:22"
     cap_add:
       - ALL
+    privileged: 
+      true

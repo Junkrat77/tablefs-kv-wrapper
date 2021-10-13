@@ -15,7 +15,7 @@ namespace tablefs{
 #ifdef DMETAKV_CACHE
         SetCacheOp(1, 1, (100ul * (1ul << 20)), (100ul * (1ul << 20)))
 #endif
-        DBOpen(&db_option,"/home/test", &db_);
+        DBOpen(&db_option,"/mnt/pmem", &db_);
         return 1;
     }
 
@@ -72,11 +72,11 @@ namespace tablefs{
         ~MetaDBInserter() {};
 
         void Put(const leveldb::Slice &key, const leveldb::Slice &value) override {
-            this->Put(key, value);
+            _wrapper->Put(key, value);
         };
 
         void Delete(const leveldb::Slice &key) override {
-            this->Delete(key);
+            _wrapper->Delete(key);
         };
     private:
         MetaKVWrapper *_wrapper;
@@ -127,7 +127,7 @@ namespace tablefs{
     }
 
     void MetaKVIterator::Next() {
-        uint64_t fname_len = (*(uint64_t*)cursor) - sizeof(uint64_t); 
+        uint64_t fname_len = (*(uint32_t*)cursor) - sizeof(uint64_t); 
         cursor += fname_len + fname_header_len;
     }
 

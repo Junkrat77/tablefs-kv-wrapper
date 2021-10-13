@@ -44,21 +44,31 @@ void TestFSWrapper(Properties &prop) {
         content[i] = rand() % 26 + 97;
     int fd;
     printf("ls result = [%d]\n", fs->Listdir("/"));
+    // fs->Mkdir("/00000000", O_RDWR);
+    // fs->Mkdir("/00000001", O_RDWR);
+    // fs->Mknod("/00000000/a", S_IRWXU | S_IRWXG | S_IRWXO, 0);
+    // fd = fs->Open("/00000000/a", O_WRONLY);
+    // fs->Mknod("/00000000/b", S_IRWXU | S_IRWXG | S_IRWXO, 0);
+    // fd = fs->Open("/00000000/b", O_WRONLY);
+    // printf("ls result = [%d]\n", fs->Listdir("/00000000"));
+    // fs->Rename("/00000000/a", "/00000000/c");
+    // fs->Unlink("/00000000/b");
+    // printf("ls result = [%d]\n", fs->Listdir("/00000000"));
     //printf("finish first ls\n\n");
-    for (int i = 0; i < 100; ++i) {
-        sprintf(fpath, "/%08x\0", i);
-        fs->Mknod(fpath, S_IRWXU | S_IRWXG | S_IRWXO, 0);
-        fd = fs->Open(fpath, O_WRONLY);
-        if (fd == -1) {
-            printf("open failed\n");
-        }
-        fs->Write(fd, content, content_size);
-        fs->Close(fd);
-        //if (i % 1000 == 0) {
-        //    printf("finished %d\r", i);
-        //}
-    }
-    printf("ls result = [%d]\n", fs->Listdir("/"));
+    // for (int i = 0; i < 100; ++i) {
+    //     sprintf(fpath, "/%08x\0", i);
+    //     fs->Mknod(fpath, S_IRWXU | S_IRWXG | S_IRWXO, 0);
+    //     fd = fs->Open(fpath, O_WRONLY);
+    //     if (fd == -1) {
+    //         printf("open failed\n");
+    //     }
+    //     fs->Write(fd, content, content_size);
+    //     fs->Close(fd);
+    //     //if (i % 1000 == 0) {
+    //     //    printf("finished %d\r", i);
+    //     //}
+    // }
+    // printf("ls result = [%d]\n", fs->Listdir("/"));
 
     delete fs;
 
