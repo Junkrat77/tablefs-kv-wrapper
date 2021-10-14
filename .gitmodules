@@ -1,7 +1,3 @@
-[submodule "kv/pmem-rocksdb"]
-	path = kv/pmem-rocksdb
-	url = https://github.com/GlitterIsMe/pmem-rocksdb.git
-	branch = developing
 [submodule "kv/hikv"]
 	path = kv/hikv
 	url = https://github.com/GlitterIsMe/open_hikv.git
