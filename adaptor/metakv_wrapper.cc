@@ -15,7 +15,7 @@ namespace tablefs{
 #ifdef DMETAKV_CACHE
         SetCacheOp(1, 1, (100ul * (1ul << 20)), (100ul * (1ul << 20)))
 #endif
-        DBOpen(&db_option,"/mnt/pmem", &db_);
+        DBOpen(&db_option,"/mnt/pmem/metakv", &db_);
         return 1;
     }
 
@@ -128,7 +128,7 @@ namespace tablefs{
 
     void MetaKVIterator::Next() {
         uint64_t fname_len = (*(uint32_t*)cursor) - sizeof(uint64_t); 
-        cursor += fname_len + fname_header_len;
+        cursor += fname_len + fname_header_len; 
     }
 
     void MetaKVIterator::Prev() {
@@ -153,9 +153,19 @@ namespace tablefs{
 
     leveldb::Slice MetaKVIterator::value() const {
         //return leveldb::Slice(iter->value.data(), iter->value.size());
-        uint64_t fname_len = (*(uint32_t*)cursor) - sizeof(uint64_t); 
-        char* fname = cursor + fname_header_len;
+        // uint64_t fname_len = (*(uint32_t*)cursor) - sizeof(uint64_t); 
+        const char* fname = cursor + fname_header_len;
+        // printf("fname_len = %lu\n", fname_len);
+        // printf("strlen(fname) = %lu\n", strlen(fname));
+        
+        // if (fname[fname_len] == '\0') printf("fname以结束符结尾\n");
+        // char* new_fname = (char*)malloc(fname_len + 1);
+        
+        // memcpy(new_fname,fname, fname_len);
+        // new_fname[fname_len] = '\0';
         //printf("fname_len = %lu\n", fname_len);
-        return leveldb::Slice(fname, fname_len);
+        // return leveldb::Slice(new_fname, fname_len);
+        return leveldb::Slice(fname, strlen(fname));
+
     }
 }
