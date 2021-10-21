@@ -16,3 +16,6 @@
 [submodule "filebench"]
 	path = filebench
 	url = git@github.com:filebench/filebench.git
+[submodule "kv/pmem-rocksdb"]
+	path = kv/pmem-rocksdb
+	url = git@github.com:Junkrat77/pmem-rocksdb.git

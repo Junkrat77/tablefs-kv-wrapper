@@ -6,3 +6,14 @@ build/*
 run_filebench.sh
 kv/metakv
 README.txt
+tablefs_test.sh
+umount.sh
+createfiles.log
+logging copy
+.gitignore
+logging
+run_filebench.sh
+README.txt
+scan.log
+mount.sh
+

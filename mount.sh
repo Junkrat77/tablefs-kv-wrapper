@@ -1,3 +1,3 @@
 #!/bin/bash
-echo "./build/tablefs -mountdir ./mountdir -datadir /mnt/pmem -metadir /mnt/pmem"
-./build/tablefs -mountdir ./mountdir -datadir /mnt/pmem -metadir /mnt/pmem
+echo "/home/tablefs/build/tablefs -mountdir /home/mountdir -datadir /mnt/pmem -metadir /mnt/pmem"
+/home/tablefs/build/tablefs -mountdir /home/mountdir -datadir /mnt/pmem -metadir /mnt/pmem

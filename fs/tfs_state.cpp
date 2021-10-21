@@ -53,7 +53,7 @@ int FileSystemState::Setup(Properties& prop) {
   }
 
   // logs = new Logging(prop.getProperty("logfile", ""));
-  logs = new Logging("/home/TableFS/logging");
+  logs = new Logging("/home/tablefs/logging");
   logs->SetDefault(logs);
   logs->Open();
 

@@ -48,7 +48,7 @@ namespace tablefs {
 
     private:
         Statistics statistics;
-        std::string path_{"/mnt/pmem/tablefs-data"};
+        // std::string path_{"/mnt/pmem/tablefs-data"};
         struct MetaDb db_;
     };
 

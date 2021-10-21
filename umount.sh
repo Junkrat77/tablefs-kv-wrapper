@@ -1,9 +1,11 @@
 #!/bin/bash
-echo "rm -rf /mnt/pmem/*"
-rm -rf /mnt/pmem/*
+echo "umount -l /home/mountdir"
+umount -l /home/mountdir
 echo "rm -rf /mnt/pmem/root.dat"
-rm -f /mnt/pmem/root.dat
-echo "rm -rf ./mountdir/* "
-rm -rf ./mountdir/* 
-echo "umount -l ./mountdir"
-umount -l ./mountdir
+rm -f /mnt/pmem/root.dat ;
+echo "rm -rf /mnt/pmem/*"
+rm -rf /mnt/pmem/* ;
+echo "rm -rf /home/mountdir/* "
+rm -rf /home/mountdir/* ;
+# echo "umount -l ./mountdir"
+# umount -l ./mountdir
